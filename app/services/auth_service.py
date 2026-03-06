@@ -30,6 +30,8 @@ async def register_user(db: AsyncSession, email: str, password: str):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        "refresh_expires_in": settings.REFRESH_TOKEN_EXPIRE_DAYS,
     }
 
 
@@ -50,6 +52,8 @@ async def login_user(db: AsyncSession, email: str, password: str):
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        "refresh_expires_in": settings.REFRESH_TOKEN_EXPIRE_DAYS,
     }
 
 
@@ -75,4 +79,8 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         raise AuthorizationException("User disabled")
     new_access_token = create_access_token({"user_id": user.id})
 
-    return {"access_token": new_access_token, "token_type": "bearer"}
+    return {
+            "access_token": new_access_token,
+            "token_type": "bearer",
+            "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            }
