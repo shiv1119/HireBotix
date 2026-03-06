@@ -1,19 +1,18 @@
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import RedirectResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from app.routers import auth
-from app.middleware.request_logger import RequestLoggingMiddleware
-from app.core.config import settings
 from app.core.exception_handlers import (
     app_exception_handler,
-    validation_exception_handler,
-    request_validation_handler,
+    generic_exception_handler,
     http_exception_handler,
-    generic_exception_handler
+    request_validation_handler,
+    validation_exception_handler,
 )
 from app.core.exceptions import AppException, ValidationException
 from app.core.logger import setup_logging
+from app.middleware.request_logger import RequestLoggingMiddleware
+from app.routers import auth
 
 setup_logging()
 

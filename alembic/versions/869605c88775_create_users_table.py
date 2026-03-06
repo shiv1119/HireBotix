@@ -5,15 +5,16 @@ Revises: c838b397c637
 Create Date: 2026-03-06 11:22:12.686050
 
 """
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '869605c88775'
-down_revision: Union[str, Sequence[str], None] = 'c838b397c637'
+revision: str = "869605c88775"
+down_revision: Union[str, Sequence[str], None] = "c838b397c637"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

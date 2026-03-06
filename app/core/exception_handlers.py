@@ -1,94 +1,70 @@
 from fastapi import Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
-
-from app.core.exceptions import AppException, ValidationException
 from app.core.enums import ErrorCode
+from app.core.exceptions import AppException, ValidationException
 
-
-# App custom exceptions
 async def app_exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": exc.error.value,
-            "message": exc.message
-        }
+        content={"error": exc.error.value, "message": exc.message},
     )
 
-
-# Custom validation exception
-async def validation_exception_handler(request: Request, exc: ValidationException):
+async def validation_exception_handler(
+        request: Request,
+        exc: ValidationException):
     return JSONResponse(
         status_code=exc.status_code,
-        content={
-            "error": exc.error.value,
-            "fields": exc.fields
-        }
+        content={"error": exc.error.value, "fields": exc.fields},
     )
 
-
-# Pydantic validation errors
-async def request_validation_handler(request: Request, exc: RequestValidationError):
-
+async def request_validation_handler(
+        request: Request,
+        exc: RequestValidationError):
     fields = {}
-
     for error in exc.errors():
         field = error["loc"][-1]
         msg = error["msg"]
-
         if field not in fields:
             fields[field] = []
-
         fields[field].append(msg)
-
     return JSONResponse(
         status_code=422,
-        content={
-            "error": ErrorCode.VALIDATION_ERROR.value,
-            "fields": fields
-        }
+        content={"error": ErrorCode.VALIDATION_ERROR.value, "fields": fields},
     )
 
-
-# Route not found / method not allowed
-async def http_exception_handler(request: Request, exc: StarletteHTTPException):
-
+async def http_exception_handler(
+        request: Request,
+        exc: StarletteHTTPException):
     if exc.status_code == 404:
         return JSONResponse(
             status_code=404,
             content={
                 "error": ErrorCode.ROUTE_NOT_FOUND.value,
-                "message": "Route not found"
-            }
+                "message": "Route not found",
+            },
         )
-
     if exc.status_code == 405:
         return JSONResponse(
             status_code=405,
             content={
                 "error": ErrorCode.METHOD_NOT_ALLOWED.value,
-                "message": "Method not allowed"
-            }
+                "message": "Method not allowed",
+            },
         )
-
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "error": ErrorCode.INTERNAL_SERVER_ERROR.value,
-            "message": exc.detail
-        }
+            "message": exc.detail},
     )
 
-
-# Catch all unexpected errors
 async def generic_exception_handler(request: Request, exc: Exception):
-
     return JSONResponse(
         status_code=500,
         content={
             "error": ErrorCode.INTERNAL_SERVER_ERROR.value,
-            "message": "Something went wrong"
-        }
+            "message": "Something went wrong",
+        },
     )

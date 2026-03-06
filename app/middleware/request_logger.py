@@ -1,17 +1,12 @@
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import Request
-import time
-import logging
 import json
+import logging
+import time
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 
 logger = logging.getLogger("request_logger")
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """
-    Logs every request with different levels of detail:
-    - DEV: DEBUG logs all request details and timings
-    - PROD: INFO logs only method, path, status, timing
-    """
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
         body_bytes = await request.body() if logger.isEnabledFor(logging.DEBUG) else b""
@@ -33,13 +28,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 body_json = "<non-json body>"
             logger.debug(
                 f"{request.method} {request.url.path} | status={response.status_code} | "
-                f"time={process_time:.2f}ms | headers={dict(request.headers)} | body={body_json}"
-            )
+                f"time={process_time:.2f}ms | headers={dict(request.headers)} | body={body_json}")
         else:
             level = logging.INFO if response.status_code < 400 else logging.WARNING
             logger.log(
                 level,
-                f"{request.method} {request.url.path} | status={response.status_code} | {process_time:.2f}ms"
+                f"{request.method} {request.url.path} | status={response.status_code} | {process_time:.2f}ms",
             )
 
         return response

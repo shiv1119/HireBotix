@@ -18,12 +18,9 @@ def validate_password(password: str) -> str:
         errors.append("Password must contain at least one special character")
     if errors:
         raise ValidationException({"password": errors})
-
     return password
 
 EMAIL_REGEX = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
-
-
 def validate_email(email: str):
     errors = []
     if not email:
@@ -34,5 +31,4 @@ def validate_email(email: str):
         errors.append("Invalid email format")
     if errors:
         raise ValidationException({"email": errors})
-
     return email

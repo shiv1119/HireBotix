@@ -1,33 +1,26 @@
-from sqlalchemy.ext.asyncio import AsyncSession
+from jose import JWTError, jwt
 from sqlalchemy import select
-from app.models.users import User
-from app.core.security import verify_password, hash_password
-from app.core.jwt import create_access_token, create_refresh_token
-from app.core.exceptions import (
-    AuthenticationException,
-    AuthorizationException,
-    NotFoundException,
-    ConflictException
-)
-from jose import jwt, JWTError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
+from app.core.exceptions import (AuthenticationException,
+                                 AuthorizationException, ConflictException,
+                                 NotFoundException)
+from app.core.jwt import create_access_token, create_refresh_token
+from app.core.security import hash_password, verify_password
+from app.models.users import User
 
 ALGORITHM = "HS256"
 
+
 async def register_user(db: AsyncSession, email: str, password: str):
     result = await db.execute(
-        select(User).where(
-            User.email == email,
-            User.is_deleted == False
-        )
+        select(User).where(User.email == email, User.is_deleted == False)
     )
     existing_user = result.scalar_one_or_none()
     if existing_user:
         raise ConflictException("Email already registered")
-    new_user = User(
-        email=email,
-        password=hash_password(password)
-    )
+    new_user = User(email=email, password=hash_password(password))
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
@@ -36,16 +29,13 @@ async def register_user(db: AsyncSession, email: str, password: str):
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
     }
 
 
 async def login_user(db: AsyncSession, email: str, password: str):
     result = await db.execute(
-        select(User).where(
-            User.email == email,
-            User.is_deleted == False
-        )
+        select(User).where(User.email == email, User.is_deleted == False)
     )
     user = result.scalar_one_or_none()
     if not user:
@@ -59,16 +49,14 @@ async def login_user(db: AsyncSession, email: str, password: str):
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
-        "token_type": "bearer"
+        "token_type": "bearer",
     }
 
 
 async def refresh_access_token(db: AsyncSession, refresh_token: str):
     try:
         payload = jwt.decode(
-            refresh_token,
-            settings.REFRESH_SECRET_KEY,
-            algorithms=[ALGORITHM]
+            refresh_token, settings.REFRESH_SECRET_KEY, algorithms=[ALGORITHM]
         )
         if payload.get("type") != "refresh":
             raise AuthenticationException("Invalid token type")
@@ -78,10 +66,7 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
     except JWTError:
         raise AuthenticationException("Invalid refresh token")
     result = await db.execute(
-        select(User).where(
-            User.id == user_id,
-            User.is_deleted == False
-        )
+        select(User).where(User.id == user_id, User.is_deleted == False)
     )
     user = result.scalar_one_or_none()
     if not user:
@@ -90,7 +75,4 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         raise AuthorizationException("User disabled")
     new_access_token = create_access_token({"user_id": user.id})
 
-    return {
-        "access_token": new_access_token,
-        "token_type": "bearer"
-    }
+    return {"access_token": new_access_token, "token_type": "bearer"}

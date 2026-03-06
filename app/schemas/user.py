@@ -1,5 +1,5 @@
 from pydantic import BaseModel, field_validator
-from app.core.validators import validate_password, validate_email
+from app.core.validators import validate_email, validate_password
 
 class UserRegister(BaseModel):
     email: str
@@ -29,7 +29,6 @@ class UserLogin(BaseModel):
     @classmethod
     def password_validation(cls, v):
         return validate_password(v)
-
 
 class TokenResponse(BaseModel):
     access_token: str
