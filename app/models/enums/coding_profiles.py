@@ -1,0 +1,19 @@
+from enum import Enum
+
+class PlatformEnum(str, Enum):
+    LEETCODE = "LEETCODE"
+    CODEFORCES = "CODEFORCES"
+    HACKERRANK = "HACKERRANK"
+    CODECHEF = "CODECHEF"
+    ATCODER = "ATCODER"
+    GEEKSFORGEEKS = "GEEKSFORGEEKS"
+    TOPCODER = "TOPCODER"
+    SPOJ = "SPOJ"
+    KAGGLE = "KAGGLE"
+    BINARYSEARCH = "BINARYSEARCH"
+    PROJECTEULER = "PROJECTEULER"
+
+class SyncStatusEnum(str, Enum):
+    SUCCESS = "SUCCESS"
+    PENDING = "PENDING"
+    FAILED = "FAILED"
