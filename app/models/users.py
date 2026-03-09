@@ -29,3 +29,10 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan"
     )
+    job_postings = relationship(
+        "JobPosting",
+        back_populates="hr",
+        cascade="all, delete-orphan"
+    )
+from app.models.coding_profiles import CodingProfile
+from app.models.jobs import JobPosting

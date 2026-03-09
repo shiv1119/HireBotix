@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     LINKEDIN_CLIENT_ID: str
     LINKEDIN_CLIENT_SECRET: str
     ENV: str = "development"
+    ALGORITHM: str = "HS256"
 
     class Config:
         env_file = ".env"

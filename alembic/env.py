@@ -10,6 +10,7 @@ from app.core.config import settings
 from app.db.database import Base
 from app.models.users import User
 from app.models.coding_profiles import CodingProfile, CodingStats
+from app.models.jobs import JobPosting
 config = context.config
 
 fileConfig(config.config_file_name)

@@ -37,6 +37,25 @@ async def request_validation_handler(
 async def http_exception_handler(
         request: Request,
         exc: StarletteHTTPException):
+
+    if exc.status_code == 401:
+        return JSONResponse(
+            status_code=401,
+            content={
+                "error": ErrorCode.AUTHENTICATION_ERROR.value,
+                "message": exc.detail or "Not authenticated",
+            },
+        )
+
+    if exc.status_code == 403:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": ErrorCode.AUTHORIZATION_ERROR.value,
+                "message": exc.detail or "Access denied",
+            },
+        )
+
     if exc.status_code == 404:
         return JSONResponse(
             status_code=404,
@@ -45,6 +64,7 @@ async def http_exception_handler(
                 "message": "Route not found",
             },
         )
+
     if exc.status_code == 405:
         return JSONResponse(
             status_code=405,
@@ -53,11 +73,13 @@ async def http_exception_handler(
                 "message": "Method not allowed",
             },
         )
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "error": ErrorCode.INTERNAL_SERVER_ERROR.value,
-            "message": exc.detail},
+            "message": exc.detail if exc.detail else "Unexpected error",
+        },
     )
 
 async def generic_exception_handler(request: Request, exc: Exception):

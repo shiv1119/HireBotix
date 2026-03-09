@@ -24,8 +24,8 @@ async def register_user(db: AsyncSession, email: str, password: str):
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
-    access_token = create_access_token({"user_id": new_user.id})
-    refresh_token = create_refresh_token({"user_id": new_user.id})
+    access_token = create_access_token({"user_id": str(new_user.id)})
+    refresh_token = create_refresh_token({"user_id": str(new_user.id)})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -46,8 +46,8 @@ async def login_user(db: AsyncSession, email: str, password: str):
         raise AuthenticationException()
     if not user.is_active:
         raise AuthorizationException("User account disabled")
-    access_token = create_access_token({"user_id": user.id})
-    refresh_token = create_refresh_token({"user_id": user.id})
+    access_token = create_access_token({"user_id": str(user.id)})
+    refresh_token = create_refresh_token({"user_id": str(user.id)})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -77,7 +77,7 @@ async def refresh_access_token(db: AsyncSession, refresh_token: str):
         raise NotFoundException("User not found")
     if not user.is_active:
         raise AuthorizationException("User disabled")
-    new_access_token = create_access_token({"user_id": user.id})
+    new_access_token = create_access_token({"user_id": str(user.id)})
 
     return {
             "access_token": new_access_token,
