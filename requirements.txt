@@ -1,0 +1,15 @@
+Django==4.2.19
+Faker==40.11.1
+numpy
+pdf2image==1.16.3
+pdfplumber==0.10.3
+pytesseract==0.3.10
+python-dotenv==1.2.2
+Requests==2.33.0
+scikit_learn
+user_agents
+whitenoise
+gunicorn
+dj-database-url
+psycopg2-binary
+django-jazzmin

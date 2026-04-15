@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Certification - My Portfolio{% endblock %}
+
+{% block page %}certification-form{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+    <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+    <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+    <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+    <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+    <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-4xl mx-auto px-6">
+        <span class="rc h r s zd/2 od zg gh"></span>
+        <span class="rc h r q zd/2 od xg mh"></span>
+
+        <div class="rj text-center">
+            <h2 class="ek ck kk wm xb">
+                {% if form.instance.pk %}Edit Certification{% else %}Add New Certification{% endif %}
+            </h2>
+            <h3 class="hk yj kk wm ob mc">
+                {% if form.instance.pk %}Update your certification details{% else %}Add a professional certification{% endif %}
+            </h3>
+        </div>
+
+        {% if messages %}
+        <div class="mt-6 mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+                    {% if message.tags == 'error' %}bg-red-500 text-white
+                    {% elif message.tags == 'success' %}bg-green-500 text-white
+                    {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+                    {% else %}bg-blue-500 text-white{% endif %}">
+                    <span>{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if needs_updating %}
+        <div class="mb-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-blue-700">
+                        <strong>Profile Update Required:</strong> You're updating your profile. 
+                        {% if needs_updating|length > 1 %}
+                            After saving, you'll be redirected to update: {{ needs_updating|join:", " }}.
+                        {% else %}
+                            This is the last section to update before you can continue.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <form class="sb w-full" method="POST">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                {% for field in form %}
+                <div class="wb w-full {% if field.name == 'name' %}lg:col-span-2{% endif %}">
+                    <label class="rc kk wm vb block mb-2 font-medium">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                        <span class="text-red-500">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    {{ field }}
+                    
+                    {% if field.help_text %}
+                    <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-10 flex justify-end gap-4">
+                <a href="{% url 'certification-list' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-300">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="gh lk rg il _l gi hi px-8 py-3 transition-all duration-300 hover:bg-opacity-90">
+                    {% if form.instance.pk %}Update Certification{% else %}Save Certification{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+{% endblock %}

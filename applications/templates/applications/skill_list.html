@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Skills - My Portfolio{% endblock %}
+
+{% block page %}skill-list{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+    <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+    <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+    <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+    <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+    <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-6xl mx-auto px-6">
+        <span class="rc h r s zd/2 od zg gh"></span>
+        <span class="rc h r q zd/2 od xg mh"></span>
+
+        <div class="rj text-center">
+            <h2 class="ek ck kk wm xb">Skills & Expertise</h2>
+            <h3 class="hk yj kk wm ob mc">Highlight your technical and professional skills</h3>
+        </div>
+
+        {% if messages %}
+        <div class="mt-6 mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+                    {% if message.tags == 'error' %}bg-red-500 text-white
+                    {% elif message.tags == 'success' %}bg-green-500 text-white
+                    {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+                    {% else %}bg-blue-500 text-white{% endif %}">
+                    <span>{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if needs_updating and current_updating %}
+        <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm text-yellow-700">
+                        <strong>Profile Update Required:</strong> You're updating your {{ current_updating }}. 
+                        {% if needs_updating|length > 1 %}
+                            After this, you'll need to update {{ needs_updating|join:", " }}.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="flex justify-end mb-6">
+            <a href="{% url 'skill-create' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" 
+               class="gh lk rg il _l gi hi px-6 py-3 inline-flex items-center gap-2 hover:bg-opacity-90 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add Skill
+            </a>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            {% for skill in skills %}
+            <div class="group relative">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg px-6 py-3 hover:shadow-lg transition-all duration-300">
+                    <div class="flex items-center gap-3">
+                        <span class="text-lg font-medium text-gray-800">{{ skill.name }}</span>
+                        <div class="flex gap-1 transition-opacity duration-300">
+                            <a href="{% url 'skill-update' skill.pk %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" 
+                               class="text-blue-600 hover:text-blue-800 p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                </svg>
+                            </a>
+                            <a href="{% url 'skill-delete' skill.pk %}" 
+                               class="text-red-600 hover:text-red-800 p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -top-2 -right-2 text-xs text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {{ skill.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+            {% empty %}
+            <div class="w-full text-center py-12">
+                <div class="bg-gray-50 rounded-lg p-8">
+                    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No skills added</h3>
+                    <p class="text-gray-500 mb-4">Add your skills to help employers find you</p>
+                    <a href="{% url 'skill-create' %}" class="inline-flex items-center gap-2 gh lk rg il _l gi hi px-6 py-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add Your First Skill
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

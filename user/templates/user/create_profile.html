@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+HireBotx - Create Profile
+{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" class="h j k" alt="">
+<img src="{% static 'img/shape-03.svg' %}" class="h l m" alt="">
+<img src="{% static 'img/shape-17.svg' %}" class="h n o" alt="">
+<img src="{% static 'img/shape-18.svg' %}" class="h p q" alt="">
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp">
+
+<div class="rj">
+
+<!-- Card Borders -->
+<span class="rc h r s zd/2 od zg gh"></span>
+<span class="rc h r q zd/2 od xg mh"></span>
+
+<h2 class="ek ck kk wm xb">
+Create Profile
+</h2>
+
+<p>
+Enter the fields to create your profile.
+</p>
+
+</div>
+
+
+<!-- Messages -->
+{% if messages %}
+<div class="mt-4 mb-4 space-y-3">
+
+{% for message in messages %}
+
+{% if message.tags == "error" %}
+<div role="alert" class="flex items-center justify-between bg-red-500 text-white px-4 py-3 rounded-lg shadow fade-alert">
+
+{% elif message.tags == "success" %}
+<div role="alert" class="flex items-center justify-between bg-green-500 text-white px-4 py-3 rounded-lg shadow fade-alert">
+
+{% elif message.tags == "warning" %}
+<div role="alert" class="flex items-center justify-between bg-yellow-400 text-black px-4 py-3 rounded-lg shadow fade-alert">
+
+{% else %}
+<div role="alert" class="flex items-center justify-between bg-blue-500 text-white px-4 py-3 rounded-lg shadow fade-alert">
+{% endif %}
+
+<span>{{ message }}</span>
+
+<button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold hover:opacity-70">
+&times;
+</button>
+
+</div>
+
+{% endfor %}
+
+</div>
+{% endif %}
+
+
+
+<form method="post" enctype="multipart/form-data" class="sb">
+{% csrf_token %}
+
+{% for field in form %}
+
+<div class="wb">
+
+<label for="{{ field.id_for_label }}" class="rc kk wm vb">
+{{ field.label }}
+
+{% if field.field.required %}
+<span class="text-red-500">*</span>
+{% endif %}
+
+</label>
+
+{{ field }}
+
+{% if field.help_text %}
+<p class="text-sm text-gray-500 mt-1">
+{{ field.help_text }}
+</p>
+{% endif %}
+
+{% for error in field.errors %}
+<p class="text-red-500 text-sm mt-1">
+{{ error }}
+</p>
+{% endfor %}
+
+</div>
+
+{% endfor %}
+
+
+<button class="vd rj ek rc rg gh lk ml il _l gi hi">
+Create Profile
+</button>
+
+</form>
+
+</div>
+
+</section>
+
+{% endblock %}

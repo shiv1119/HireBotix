@@ -1,0 +1,28 @@
+<svg width="175" height="44" viewBox="0 0 175 44" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Icon Box -->
+  <rect x="0" y="0" width="44" height="44" rx="10" fill="#4E6BFF"/>
+
+  <!-- Robot Head -->
+  <rect x="12" y="18" width="20" height="16" rx="3" fill="white"/>
+
+  <!-- Eyes -->
+  <circle cx="18" cy="26" r="2" fill="#4E6BFF"/>
+  <circle cx="26" cy="26" r="2" fill="#4E6BFF"/>
+
+  <!-- Antenna -->
+  <line x1="22" y1="18" x2="22" y2="12" stroke="white" stroke-width="2"/>
+  <circle cx="22" cy="10" r="2" fill="white"/>
+
+  <!-- Text -->
+  <text x="56" y="29"
+        font-family="Inter, Poppins, Montserrat, Segoe UI, Arial, sans-serif"
+        font-size="24"
+        font-weight="700"
+        letter-spacing="0.8"
+        fill="white"
+        text-rendering="geometricPrecision">
+    HireBotX
+  </text>
+
+</svg>

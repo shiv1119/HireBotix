@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+HireBotx - Settings
+{% endblock %}
+
+{% block page %}settings{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+  <!-- Background Shapes -->
+  <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+  <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+  <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+  <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+  <!-- Main Container -->
+  <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+    <!-- Bg Border -->
+    <span class="rc h r s zd/2 od zg gh"></span>
+    <span class="rc h r q zd/2 od xg mh"></span>
+
+    <div class="rj text-center">
+      <h2 class="ek ck kk wm xb">Settings</h2>
+      <h3 class="hk yj kk wm ob mc">Manage your account preferences</h3>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+        <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+          {% if message.tags == 'error' %}bg-red-500 text-white
+          {% elif message.tags == 'success' %}bg-green-500 text-white
+          {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+          {% else %}bg-blue-500 text-white{% endif %}">
+          <span>{{ message }}</span>
+          <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Settings List -->
+    <div class="mt-6">
+      
+      <!-- Profile Settings -->
+      <a href="{% url 'profile' %}" class="settings-item flex items-center justify-between p-5 border-b border-gray-100  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold">Profile Settings</h4>
+            <p class="text-sm text-gray-500">Update your personal information and avatar</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <!-- Security & Privacy -->
+      <a href="{% url 'login_history' %}" class="settings-item flex items-center justify-between p-5 border-b border-gray-100  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6-4h12a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2zm10 5v-2m-8 2v-2m4-8h.01M12 11h.01"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold ">Security & Privacy</h4>
+            <p class="text-sm text-gray-500">Manage login history and security settings</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <!-- Notification Preferences -->
+      <a href="{% url 'notification_settings' %}" class="settings-item flex items-center justify-between p-5 border-b border-gray-100  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold ">Notification Preferences</h4>
+            <p class="text-sm text-gray-500">Choose what notifications you want to receive</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <!-- Account Management -->
+      <a href="{% url 'account_settings' %}" class="settings-item flex items-center justify-between p-5 border-b border-gray-100  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold ">Account Management</h4>
+            <p class="text-sm text-gray-500">Manage team members and account settings</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <!-- Reset Password -->
+      <a href="{% url 'password_reset' %}" class="settings-item flex items-center justify-between p-5 border-b border-gray-100  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6-4h12a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2zm10 5v-2m-8 2v-2m4-8h.01M12 11h.01"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold ">Reset Password</h4>
+            <p class="text-sm text-gray-500">Change your account password</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+      <!-- Help & Support -->
+      <a href="#" class="settings-item flex items-center justify-between p-5  transition-all duration-200 group">
+        <div class="flex items-center gap-4">
+          <div class="p-2 rounded-lg group-hover:bg-blue-100 transition-colors">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold ">Help & Support</h4>
+            <p class="text-sm text-gray-500">Get help or contact support team</p>
+          </div>
+        </div>
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </a>
+
+    </div>
+
+  </div>
+
+</section>
+
+<script src="{% static 'js/bundle.js' %}"></script>
+
+{% endblock content %}

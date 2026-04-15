@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+HireBotx - Jobs by {{ profile_user.get_full_name|default:profile_user.username }}
+{% endblock %}
+
+{% block page %}user-jobs{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+  <span class="rc h r s zd/2 od zg gh"></span>
+  <span class="rc h r q zd/2 od xg mh"></span>
+
+  <div class="rj text-center">
+    <h2 class="ek ck kk wm xb">
+      Jobs Posted by {{ profile_user.get_full_name|default:profile_user.username }}
+    </h2>
+    <h3 class="hk yj kk wm ob mc">
+      {% if is_owner %}Your posted jobs{% else %}View all jobs posted by this recruiter{% endif %}
+    </h3>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
+
+  {% for job in jobs %}
+<div class="wb p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow hover:shadow-lg transition duration-300">
+
+  <h3 class="text-xl font-semibold mb-3">
+    <a href="{% url 'job_detail' job.id %}" class="hover:underline">
+      {{ job.title }}
+    </a>
+  </h3>
+
+  <p class="flex items-center gap-2 text-sm opacity-80 mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M3 21h18M5 21V7a2 2 0 012-2h3V3h4v2h3a2 2 0 012 2v14"/>
+    </svg>
+    {{ job.company_name }}
+  </p>
+
+  <p class="flex items-center gap-2 text-sm opacity-70 mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M12 21c-4.97-4.97-8-8.03-8-11a8 8 0 1116 0c0 2.97-3.03 6.03-8 11z"/>
+      <circle cx="12" cy="10" r="3"/>
+    </svg>
+    {{ job.location }} • {{ job.get_job_type_display }}
+  </p>
+
+  {% if job.salary_min and job.salary_max %}
+  <p class="flex items-center gap-2 text-sm mb-3">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M12 8c-2.21 0-4 1.12-4 2.5S9.79 13 12 13s4 1.12 4 2.5S14.21 18 12 18m0-10v10"/>
+    </svg>
+    {{ job.get_currency_symbol }}{{ job.salary_min|intcomma }} - {{ job.get_currency_symbol }}{{ job.salary_max|intcomma }}
+  </p>
+  {% endif %}
+
+  <p class="flex items-start gap-2 text-xs opacity-80 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M9.75 17L3 10.25l4-4L13.75 13M14 7l3-3 4 4-3 3"/>
+    </svg>
+    {{ job.skills_required }}
+  </p>
+
+<div class="flex items-center gap-3">
+
+  {% if is_owner %}
+    <!-- Owner View: Edit and View Applications buttons -->
+    <a href="#" 
+       class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm
+              bg-yellow-500/10 text-yellow-400 border border-yellow-400/20
+              hover:bg-yellow-500/20 hover:text-yellow-300 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      <span>Edit Job</span>
+    </a>
+    
+    <a href="{% url 'recruiter_applications' job.id %}" 
+       class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+      </svg>
+      <span>View Applications</span>
+    </a>
+  {% else %}
+    <!-- Non-owner View: Disabled/Muted button -->
+    <a href="#save" 
+    class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm
+            bg-indigo-500/10 text-indigo-400 border border-indigo-400/20
+            hover:bg-indigo-500/20 hover:text-indigo-300 transition">
+
+    <svg xmlns="http://www.w3.org/2000/svg" 
+        class="w-4 h-4" 
+        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"/>
+    </svg>
+
+    <span>Save</span>
+    </a>
+    
+    <a href="{% url 'job_detail' job.id %}" 
+       class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+      </svg>
+      <span>View Details</span>
+    </a>
+  {% endif %}
+
+</div>
+
+</div>
+    {% empty %}
+    <p class="text-center col-span-2 mt-10">
+      {% if is_owner %}
+        No jobs posted yet. <a href="{% url 'create_job' %}" class="text-blue-400 hover:underline">Post your first job</a>
+      {% else %}
+        No jobs available from this recruiter right now.
+      {% endif %}
+    </p>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+<div class="flex flex-col items-center mt-8 space-y-2">
+
+  <div class="flex items-center gap-2">
+
+    {% if page_obj.number > 1 %}
+      <a href="?page=1"
+         class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">« First</a>
+    {% else %}
+      <span class="px-3 py-1 rounded bg-gray-700/10 text-gray-400">« First</span>
+    {% endif %}
+
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}"
+         class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">&laquo; Prev</a>
+    {% else %}
+      <span class="px-3 py-1 rounded bg-gray-700/10 text-gray-400">&laquo; Prev</span>
+    {% endif %}
+
+    {% for num in page_obj.paginator.page_range %}
+      {% if num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+        {% if page_obj.number == num %}
+          <span class="px-3 py-1 rounded bg-blue-500 text-white font-semibold">{{ num }}</span>
+        {% else %}
+          <a href="?page={{ num }}"
+             class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">{{ num }}</a>
+        {% endif %}
+      {% elif num == 1 or num == page_obj.paginator.num_pages %}
+        <a href="?page={{ num }}"
+           class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">{{ num }}</a>
+      {% elif num == page_obj.number|add:-3 or num == page_obj.number|add:3 %}
+        <span class="px-3 py-1 text-gray-400">…</span>
+      {% endif %}
+    {% endfor %}
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}"
+         class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">Next &raquo;</a>
+    {% else %}
+      <span class="px-3 py-1 rounded bg-gray-700/10 text-gray-400">Next &raquo;</span>
+    {% endif %}
+
+    {% if page_obj.number < page_obj.paginator.num_pages %}
+      <a href="?page={{ page_obj.paginator.num_pages }}"
+         class="px-3 py-1 rounded bg-gray-700/20 hover:bg-gray-700/40">Last »</a>
+    {% else %}
+      <span class="px-3 py-1 rounded bg-gray-700/10 text-gray-400">Last »</span>
+    {% endif %}
+
+  </div>
+  <p class="text-sm text-gray-300">
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} • Total Jobs: {{ page_obj.paginator.count }}
+  </p>
+
+</div>
+{% endif %}
+
+</div>
+
+</section>
+
+{% endblock content %}

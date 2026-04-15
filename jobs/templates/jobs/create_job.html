@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+HireBotx - Create Job
+{% endblock %}
+
+{% block page %}create-job{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes (UNCHANGED) -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+<!-- 🔥 WIDTH FIX HERE -->
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+  <!-- Bg Border -->
+  <span class="rc h r s zd/2 od zg gh"></span>
+  <span class="rc h r q zd/2 od xg mh"></span>
+
+  <div class="rj text-center">
+    <h2 class="ek ck kk wm xb">Post a New Job</h2>
+    <h3 class="hk yj kk wm ob mc">Fill job details below</h3>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+              {% if message.tags == 'error' %}bg-red-500 text-white
+              {% elif message.tags == 'success' %}bg-green-500 text-white
+              {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+              {% else %}bg-blue-500 text-white{% endif %}">
+              <span>{{ message }}</span>
+              <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+          </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- FORM -->
+  <form class="sb w-full" method="POST">
+    {% csrf_token %}
+
+    <!-- 🔥 GRID LAYOUT -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+
+      {% for field in form %}
+      <div class="wb w-full">
+
+        <label class="rc kk wm vb block mb-2">
+          {{ field.label }}
+        </label>
+
+        {{ field }}
+
+        {% if field.errors %}
+          <p class="text-red-500 text-sm mt-1">
+            {{ field.errors.0 }}
+          </p>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="mt-10 text-center">
+      <button type="submit" class="vd rj ek rc rg gh lk ml il _l gi hi px-10 py-3 text-lg">
+        Post Job
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+</section>
+
+<script src="{% static 'js/bundle.js' %}"></script>
+
+{% endblock content %}

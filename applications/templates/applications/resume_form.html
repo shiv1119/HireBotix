@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Update{% else %}Upload{% endif %} Resume - My Portfolio{% endblock %}
+
+{% block page %}resume-form{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+    <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+    <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+    <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+    <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+    <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-4xl mx-auto px-6">
+        <span class="rc h r s zd/2 od zg gh"></span>
+        <span class="rc h r q zd/2 od xg mh"></span>
+
+        <div class="rj text-center">
+            <h2 class="ek ck kk wm xb">
+                {% if form.instance.pk %}Update Resume{% else %}Upload New Resume{% endif %}
+            </h2>
+            <h3 class="hk yj kk wm ob mc">
+                {% if form.instance.pk %}Replace your existing resume{% else %}Upload your resume in PDF or DOC format{% endif %}
+            </h3>
+        </div>
+
+        {% if messages %}
+        <div class="mt-6 mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+                    {% if message.tags == 'error' %}bg-red-500 text-white
+                    {% elif message.tags == 'success' %}bg-green-500 text-white
+                    {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+                    {% else %}bg-blue-500 text-white{% endif %}">
+                    <span>{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form class="sb w-full" method="POST" enctype="multipart/form-data" id="resumeForm">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 gap-6 mt-6">
+                {% for field in form %}
+                <div class="wb w-full">
+                    <label class="rc kk wm vb block mb-2 font-medium">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                        <span class="text-red-500">*</span>
+                        {% endif %}
+                    </label>
+                    
+                    <!-- Custom file upload area -->
+                    <div class="file-upload-area border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-all duration-300 cursor-pointer" 
+                         id="fileUploadArea"
+                         onclick="document.getElementById('{{ field.id_for_label }}').click()">
+                        
+                        <!-- Icon container -->
+                        <div class="upload-icon mb-2">
+                            <svg class="w-12 h-12 mx-auto text-gray-400 transition-all duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        
+                        <!-- Status message -->
+                        <div class="upload-status">
+                            <p class="text-gray-600" id="uploadStatusText">Click to browse or drag and drop</p>
+                            <p class="text-gray-400 text-sm mt-1">PDF, DOC, DOCX (Max 10MB)</p>
+                        </div>
+                        
+                        <!-- File info (will be shown when file selected) -->
+                        <div class="file-info hidden mt-3 p-3 bg-blue-50 rounded-lg" id="fileInfo">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    <span class="text-blue-900 font-medium" id="fileName"></span>
+                                </div>
+                                <button type="button" 
+                                        onclick="clearFileSelection()"
+                                        class="text-red-500 hover:text-red-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="text-sm text-blue-700 mt-2" id="fileSize"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden file input -->
+                    {{ field }}
+                    
+                    {% if field.help_text %}
+                    <p class="text-gray-500 text-sm mt-2">{{ field.help_text }}</p>
+                    {% endif %}
+                    
+                    {% if field.errors %}
+                    <div class="text-red-500 text-sm mt-1">
+                        {% for error in field.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-10 flex justify-end gap-4">
+                <a href="{% url 'resume-list' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-300">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="gh lk rg il _l gi hi px-8 py-3 transition-all duration-300 hover:bg-opacity-90"
+                        id="submitBtn">
+                    {% if form.instance.pk %}Update Resume{% else %}Upload Resume{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('input[type="file"]');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const uploadStatusText = document.getElementById('uploadStatusText');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const uploadIcon = document.querySelector('.upload-icon svg');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    // Check if there's an existing file (for update case)
+    if (fileInput && fileInput.files.length === 0 && submitBtn) {
+        // For update case, we don't have a file selected yet
+        submitBtn.disabled = false;
+    }
+    
+    if (fileInput) {
+        // Handle file selection
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                updateFileDisplay(file);
+                validateFile(file);
+            } else {
+                resetFileDisplay();
+            }
+        });
+        
+        // Handle drag and drop
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.add('border-blue-500', 'bg-blue-50');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            fileUploadArea.classList.remove('border-blue-500', 'bg-blue-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                updateFileDisplay(files[0]);
+                validateFile(files[0]);
+            }
+        });
+    }
+    
+    function updateFileDisplay(file) {
+        // Hide upload status text
+        uploadStatusText.classList.add('hidden');
+        
+        // Show file info
+        fileInfo.classList.remove('hidden');
+        
+        // Update file name and size
+        fileName.textContent = file.name;
+        
+        // Format file size
+        const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileSize.textContent = `${sizeInMB} MB`;
+        
+        // Change icon color to indicate success
+        uploadIcon.classList.remove('text-gray-400');
+        uploadIcon.classList.add('text-green-500');
+        
+        // Add success animation
+        fileUploadArea.classList.add('border-green-500', 'bg-green-50');
+        fileUploadArea.classList.remove('border-gray-300');
+        
+        // Enable submit button
+        if (submitBtn) {
+            submitBtn.disabled = false;
+        }
+    }
+    
+    function validateFile(file) {
+        // Check file type
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        
+        if (!allowedTypes.includes(file.type)) {
+            showError('Invalid file type. Please upload PDF, DOC, or DOCX files only.');
+            resetFileDisplay();
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            showError('File size too large. Maximum size is 10MB.');
+            resetFileDisplay();
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function resetFileDisplay() {
+        // Show upload status
+        uploadStatusText.classList.remove('hidden');
+        
+        // Hide file info
+        fileInfo.classList.add('hidden');
+        
+        // Reset icon color
+        uploadIcon.classList.remove('text-green-500');
+        uploadIcon.classList.add('text-gray-400');
+        
+        // Reset border
+        fileUploadArea.classList.remove('border-green-500', 'bg-green-50', 'border-red-500', 'bg-red-50');
+        fileUploadArea.classList.add('border-gray-300');
+        
+        // Clear file input
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        
+        // Disable submit button if file is required and no file selected
+        if (submitBtn && !fileInput?.files.length) {
+            // Only disable if it's a new upload (not update)
+            const isUpdate = window.location.pathname.includes('update');
+            if (!isUpdate) {
+                submitBtn.disabled = true;
+            }
+        }
+    }
+    
+    function showError(message) {
+        // Create error message element if it doesn't exist
+        let errorDiv = document.querySelector('.file-error-message');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'file-error-message text-red-500 text-sm mt-2 flex items-center gap-2';
+            fileUploadArea.parentNode.insertBefore(errorDiv, fileUploadArea.nextSibling);
+        }
+        
+        errorDiv.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>${message}</span>
+        `;
+        
+        // Add error styling
+        fileUploadArea.classList.add('border-red-500', 'bg-red-50');
+        
+        // Remove error after 3 seconds
+        setTimeout(() => {
+            if (errorDiv) errorDiv.remove();
+            fileUploadArea.classList.remove('border-red-500', 'bg-red-50');
+        }, 3000);
+    }
+    
+    // Form validation before submit
+    const form = document.getElementById('resumeForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const file = fileInput?.files[0];
+            const isUpdate = window.location.pathname.includes('update');
+            
+            // If it's a new upload (not update), require file
+            if (!isUpdate && (!file || file.size === 0)) {
+                e.preventDefault();
+                showError('Please select a file to upload.');
+                return false;
+            }
+            
+            // Validate file if present
+            if (file && !validateFile(file)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    }
+});
+
+// Clear file selection function
+function clearFileSelection() {
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) {
+        fileInput.value = '';
+        // Trigger change event to update display
+        const event = new Event('change');
+        fileInput.dispatchEvent(event);
+    }
+}
+</script>
+
+<style>
+    input[type="file"] {
+        display: none;
+    }
+    
+    .file-upload-area {
+        transition: all 0.3s ease;
+    }
+    
+    .file-upload-area:hover {
+        transform: translateY(-2px);
+    }
+    
+    .file-info {
+        animation: slideIn 0.3s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .upload-icon svg {
+        transition: all 0.3s ease;
+    }
+    
+    /* Optional: Add shake animation for error */
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+    
+    .border-red-500 {
+        animation: shake 0.3s ease;
+    }
+</style>
+
+{% endblock %}

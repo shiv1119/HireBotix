@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}
+{{ job.company_name }} - {{ job.title }}
+{% endblock %}
+{% block page %}Profile{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" class="h j k" />
+<img src="{% static 'img/shape-03.svg' %}" class="h l m" />
+<img src="{% static 'img/shape-17.svg' %}" class="h n o" />
+<img src="{% static 'img/shape-18.svg' %}" class="h p q" />
+
+<!-- CARD CONTAINER -->
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6 bg-white rounded-xl shadow-lg">
+
+  <!-- Top Border Shapes -->
+  <span class="rc h r s zd/2 od zg gh"></span>
+  <span class="rc h r q zd/2 od xg mh"></span>
+
+  <!-- Warning Message if Already Applied -->
+  {% if has_applied %}
+  <div class="mb-6">
+    <div class="flex items-center gap-3 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+      <svg class="w-6 h-6 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+      <div class="flex-1">
+        <p class="text-yellow-800 font-medium">You have already applied to this job.</p>
+        <p class="text-yellow-700 text-sm mt-1">You can manage your application or view its status by clicking the Manage Application button below.</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- GRID LAYOUT -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 py-6">
+
+    <!-- LEFT SIDE (DETAILS) -->
+    <div class="lg:col-span-2 wb p-6">
+
+      <!-- TITLE -->
+      <h1 class="text-2xl font-bold mb-3">{{ job.title }}</h1>
+
+      <!-- COMPANY -->
+      <p class="flex items-center gap-2 text-sm opacity-80 mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M3 21h18M5 21V7a2 2 0 012-2h3V3h4v2h3a2 2 0 012 2v14"/>
+        </svg>
+        {{ job.company_name }}
+      </p>
+
+      <!-- LOCATION -->
+      <p class="flex items-center gap-2 text-sm opacity-70 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M12 21c-4.97-4.97-8-8.03-8-11a8 8 0 1116 0c0 2.97-3.03 6.03-8 11z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        {{ job.location }} • {{ job.get_job_type_display }} • {{ job.get_work_mode_display }}
+      </p>
+
+      <!-- SALARY -->
+      {% if job.salary_min and job.salary_max %}
+      <p class="flex items-center gap-2 text-sm mb-4 text-green-400 font-medium">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M12 8c-2.21 0-4 1.12-4 2.5S9.79 13 12 13s4 1.12 4 2.5S14.21 18 12 18m0-10v10"/>
+        </svg>
+        {{ job.get_currency_symbol }}{{ job.salary_min|intcomma }} - {{ job.get_currency_symbol }}{{ job.salary_max|intcomma }}
+      </p>
+      {% endif %}
+
+      <!-- SKILLS -->
+      <div class="mb-6">
+        <h3 class="flex items-center gap-2 font-semibold mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L3 10.25l4-4L13.75 13M14 7l3-3 4 4-3 3"/>
+          </svg>
+          Skills Required
+        </h3>
+        <p class="text-sm opacity-80">{{ job.skills_required }}</p>
+      </div>
+
+      <!-- DESCRIPTION -->
+      <div class="mb-6">
+        <h3 class="flex items-center gap-2 font-semibold mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 012-2z"/>
+          </svg>
+          Description
+        </h3>
+        <p class="text-sm opacity-80 leading-relaxed">{{ job.description }}</p>
+      </div>
+
+      <!-- RESPONSIBILITIES -->
+      <div class="mb-6">
+        <h3 class="flex items-center gap-2 font-semibold mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M16 8v8m-8-8v8m-4-4h16"/>
+          </svg>
+          Responsibilities
+        </h3>
+        <p class="text-sm opacity-80 leading-relaxed">{{ job.responsibilities }}</p>
+      </div>
+
+      <!-- REQUIREMENTS -->
+      <div>
+        <h3 class="flex items-center gap-2 font-semibold mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M5 13l4 4L19 7"/>
+          </svg>
+          Requirements
+        </h3>
+        <p class="text-sm opacity-80 leading-relaxed">{{ job.requirements }}</p>
+      </div>
+
+    </div>
+
+    <!-- RIGHT SIDE (ACTION PANEL) -->
+    <div class="wb p-6 h-fit sticky top-6">
+        <!-- RECRUITER -->
+        <div class="mb-6 flex items-center gap-2 text-sm opacity-80">
+          <h3 class="font-semibold">Posted By</h3>
+          {% if job.recruiter.profile.profile_photo %}
+            <img src="{{ job.recruiter.profile.profile_photo.url }}" alt="Recruiter Photo" class="w-6 h-6 rounded-full object-cover">
+          {% else %}
+            <img src="{% static 'img/profile.png' %}" alt="Default Recruiter Photo" class="w-6 h-6 rounded-full object-cover">
+          {% endif %}
+          <span>{{ job.recruiter.profile.full_name|default:job.recruiter.username }}</span>
+        </div>
+
+      <!-- APPLY BUTTONS - Show different buttons based on application status -->
+      {% if has_applied %}
+        <!-- Show Manage Application Button -->
+        <a href="{% url 'job-application-list' %}"
+          class="w-full mb-3 inline-flex justify-center items-center gap-2 px-5 py-3 text-sm
+                 bg-green-500 text-white rounded-md hover:bg-green-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Manage Application
+        </a>
+      {% else %}
+        <!-- Show Apply Now Button -->
+        <a href="{% url 'job-application-create' %}?job={{ job.id }}"
+          class="w-full mb-3 inline-flex justify-center items-center gap-2 px-5 py-3 text-sm
+                 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M5 13l4 4L19 7"/>
+          </svg>
+          Apply Now
+        </a>
+        <a href="#save"
+        class="w-full inline-flex justify-center items-center gap-2 px-5 py-3 text-sm
+               bg-indigo-500/10 text-indigo-400 border border-indigo-400/20
+               hover:bg-indigo-500/20 transition rounded-md">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"/>
+        </svg>
+        Save Job
+      </a>
+      {% endif %}
+
+    </div>
+
+  </div>
+  <hr>
+  
+<!-- SIMILAR JOBS & RECENT JOBS SLIDER -->
+<div class="mt-12 max-w-7xl mx-auto px-6">
+
+  {% if similar_jobs %}
+  <h2 class="text-xl font-bold mb-4">Similar Jobs</h2>
+  <div class="flex overflow-x-auto space-x-4 py-2 snap-x snap-mandatory">
+
+      {% for sjob in similar_jobs %}
+      <div class="flex-none wb p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow hover:shadow-lg transition duration-300 snap-start flex flex-col justify-between min-w-[45%]">
+
+        <!-- JOB TITLE -->
+        <h3 class="text-xl font-semibold mb-3">
+          <a href="{% url 'job_detail' sjob.id %}" class="hover:underline">{{ sjob.title }}</a>
+        </h3>
+
+        <!-- COMPANY -->
+        <p class="flex items-center gap-2 text-sm opacity-80 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M3 21h18M5 21V7a2 2 0 012-2h3V3h4v2h3a2 2 0 012 2v14"/>
+          </svg>
+          {{ sjob.company_name }}
+        </p>
+
+        <!-- LOCATION & TYPE -->
+        <p class="flex items-center gap-2 text-sm opacity-70 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M12 21c-4.97-4.97-8-8.03-8-11a8 8 0 1116 0c0 2.97-3.03 6.03-8 11z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ sjob.location }} • {{ sjob.get_job_type_display }}
+        </p>
+
+        <!-- SALARY -->
+        {% if sjob.salary_min and sjob.salary_max %}
+        <p class="flex items-center gap-2 text-sm mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M12 8c-2.21 0-4 1.12-4 2.5S9.79 13 12 13s4 1.12 4 2.5S14.21 18 12 18m0-10v10"/>
+          </svg>
+          {{ sjob.get_currency_symbol }}{{ sjob.salary_min|intcomma }} - {{ sjob.get_currency_symbol }}{{ sjob.salary_max|intcomma }}
+        </p>
+        {% endif %}
+
+        <!-- SKILLS -->
+        <p class="flex items-start gap-2 text-xs opacity-80 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L3 10.25l4-4L13.75 13M14 7l3-3 4 4-3 3"/>
+          </svg>
+          {{ sjob.skills_required }}
+        </p>
+
+        <div class="flex items-center gap-3">
+          <a href="#save" 
+            class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm
+                    bg-indigo-500/10 text-indigo-400 border border-indigo-400/20
+                    hover:bg-indigo-500/20 hover:text-indigo-300 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"/>
+            </svg>
+            <span>Save</span>
+          </a>
+
+          <a href="{% url 'job_detail' sjob.id %}" 
+            class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>View Details</span>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+
+  </div>
+  {% endif %}
+
+  {% if recent_jobs %}
+  <h2 class="text-xl font-bold mt-10 mb-4">Recent Jobs</h2>
+  <div class="flex overflow-x-auto space-x-4 py-2 snap-x snap-mandatory">
+
+      {% for rjob in recent_jobs %}
+      <div class="flex-none wb p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow hover:shadow-lg transition duration-300 snap-start flex flex-col justify-between min-w-[45%]">
+
+        <!-- JOB TITLE -->
+        <h3 class="text-xl font-semibold mb-3">
+          <a href="{% url 'job_detail' rjob.id %}" class="hover:underline">{{ rjob.title }}</a>
+        </h3>
+
+        <!-- COMPANY -->
+        <p class="flex items-center gap-2 text-sm opacity-80 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M3 21h18M5 21V7a2 2 0 012-2h3V3h4v2h3a2 2 0 012 2v14"/>
+          </svg>
+          {{ rjob.company_name }}
+        </p>
+
+        <!-- LOCATION & TYPE -->
+        <p class="flex items-center gap-2 text-sm opacity-70 mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M12 21c-4.97-4.97-8-8.03-8-11a8 8 0 1116 0c0 2.97-3.03 6.03-8 11z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          {{ rjob.location }} • {{ rjob.get_job_type_display }}
+        </p>
+
+        <!-- SALARY -->
+        {% if rjob.salary_min and rjob.salary_max %}
+        <p class="flex items-center gap-2 text-sm mb-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M12 8c-2.21 0-4 1.12-4 2.5S9.79 13 12 13s4 1.12 4 2.5S14.21 18 12 18m0-10v10"/>
+          </svg>
+          {{ rjob.get_currency_symbol }}{{ rjob.salary_min|intcomma }} - {{ rjob.get_currency_symbol }}{{ rjob.salary_max|intcomma }}
+        </p>
+        {% endif %}
+
+        <!-- SKILLS -->
+        <p class="flex items-start gap-2 text-xs opacity-80 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-yellow-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L3 10.25l4-4L13.75 13M14 7l3-3 4 4-3 3"/>
+          </svg>
+          {{ rjob.skills_required }}
+        </p>
+
+        <div class="flex items-center gap-3">
+          <a href="#save" 
+            class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm
+                    bg-indigo-500/10 text-indigo-400 border border-indigo-400/20
+                    hover:bg-indigo-500/20 hover:text-indigo-300 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-4-7 4V5z"/>
+            </svg>
+            <span>Save</span>
+          </a>
+
+          <a href="{% url 'job_detail' rjob.id %}" 
+            class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+            <span>View Details</span>
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+
+  </div>
+  {% endif %}
+
+</div>
+</div>
+
+</section>
+
+{% endblock %}

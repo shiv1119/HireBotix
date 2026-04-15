@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+HireBotx - Notifications
+{% endblock %}
+
+{% block page %}notifications{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+  <!-- Background Shapes -->
+  <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+  <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+  <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+  <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+  <!-- Main Container -->
+  <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+    <!-- Bg Border -->
+    <span class="rc h r s zd/2 od zg gh"></span>
+    <span class="rc h r q zd/2 od xg mh"></span>
+
+    <div class="rj text-center">
+      <h2 class="ek ck kk wm xb">Notifications</h2>
+      <h3 class="hk yj kk wm ob mc">Stay updated with your hiring activities</h3>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+        <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+          {% if message.tags == 'error' %}bg-red-500 text-white
+          {% elif message.tags == 'success' %}bg-green-500 text-white
+          {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+          {% else %}bg-blue-500 text-white{% endif %}">
+          <span>{{ message }}</span>
+          <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Unread Notifications Section -->
+    <div class="mt-8">
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400">Unread Notifications ({{ unread_notifications.count }})</h4>
+        <div class="flex gap-2">
+          {% if unread_notifications %}
+            <form action="{% url 'notification' %}" method="post" class="inline">
+              {% csrf_token %}
+              <input type="hidden" value="mark_unread_all_read" name="edit_type">
+              <input type="hidden" value="unread_notification" name="notification_type">
+              <button type="submit" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-300 text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Mark All as Read
+              </button>
+            </form>
+            <form action="{% url 'notification' %}" method="post" class="inline">
+              {% csrf_token %}
+              <input type="hidden" value="clear_notification" name="edit_type">
+              <input type="hidden" value="unread_notification" name="notification_type">
+              <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                Clear All
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        {% for notification in unread_notifications %}
+          <div class="border-l-4 border-blue-500 rounded-lg p-4 flex flex-wrap justify-between items-center transition-all hover:shadow-md">
+            <div class="flex-1">
+              <p class="font-medium">{{ notification.message }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ notification.created_at|date:"M d, Y H:i A" }}</p>
+            </div>
+            <div class="flex gap-2 mt-2 sm:mt-0">
+              {% if notification.link %}
+                <form action="{% url 'notification' %}" method="post" class="inline">
+                  {% csrf_token %}
+                  <input type="hidden" value="mark_read" name="edit_type">
+                  <input type="hidden" value="redirect_true" name="notification_view">
+                  <input type="hidden" value="{{ notification.id }}" name="notification_id">
+                  <button type="submit" class="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 rounded-lg transition-colors" title="View">
+                    <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                </form>
+              {% endif %}
+              <form action="{% url 'notification' %}" method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" value="mark_read" name="edit_type">
+                <input type="hidden" value="{{ notification.id }}" name="notification_id">
+                <button type="submit" class="p-2 bg-green-100 hover:bg-green-200 dark:bg-green-800 dark:hover:bg-green-700 rounded-lg transition-colors" title="Mark as Read">
+                  <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </button>
+              </form>
+              <form action="{% url 'notification' %}" method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" value="delete_notification" name="edit_type">
+                <input type="hidden" value="{{ notification.id }}" name="notification_id">
+                <button type="submit" class="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700 rounded-lg transition-colors" title="Delete">
+                  <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+            </svg>
+            <p class="mt-2">No unread notifications.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Read Notifications Section -->
+    <div class="mt-10">
+      <div class="flex flex-wrap justify-between items-center mb-4">
+        <h4 class="text-lg font-semibold text-gray-600 dark:text-gray-400">Read Notifications</h4>
+        {% if read_notifications.exists %}
+          <form action="{% url 'notification' %}" method="post" class="inline">
+            {% csrf_token %}
+            <input type="hidden" value="clear_notification" name="edit_type">
+            <input type="hidden" value="read_notification" name="notification_type">
+            <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 text-sm flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Clear All
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <div class="space-y-3">
+        {% for notification in read_notifications %}
+          <div class="border-l-4 border-gray-400 rounded-lg p-4 flex flex-wrap justify-between items-center transition-all hover:shadow-md">
+            <div class="flex-1">
+              <p class="">{{ notification.message }}</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">{{ notification.created_at|date:"M d, Y H:i A" }}</p>
+            </div>
+            <div class="flex gap-2 mt-2 sm:mt-0">
+              {% if notification.link %}
+                <a href="{{ notification.link }}" class="p-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 rounded-lg transition-colors" title="View">
+                  <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </a>
+              {% endif %}
+              <form action="{% url 'notification' %}" method="post" class="inline">
+                {% csrf_token %}
+                <input type="hidden" value="delete_notification" name="edit_type">
+                <input type="hidden" value="{{ notification.id }}" name="notification_id">
+                <button type="submit" class="p-2 bg-red-100 hover:bg-red-200 dark:bg-red-800 dark:hover:bg-red-700 rounded-lg transition-colors" title="Delete">
+                  <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+            <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <p class="mt-2">No read notifications.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<script src="{% static 'js/bundle.js' %}"></script>
+
+{% endblock content %}

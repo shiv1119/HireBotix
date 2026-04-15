@@ -1,0 +1,314 @@
+<!-- templates/ats_checker/dashboard.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+HireBotx - ATS Resume Checker
+{% endblock %}
+
+{% block page %}ats-dashboard{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k animate-pulse" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m animate-bounce" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o animate-spin" style="animation-duration: 20s;" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q animate-pulse" />
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+  <!-- Bg Border -->
+  <span class="rc h r s zd/2 od zg gh bg-gradient-to-r from-blue-500 to-purple-500"></span>
+  <span class="rc h r q zd/2 od xg mh bg-gradient-to-r from-purple-500 to-pink-500"></span>
+
+  <!-- Header Section -->
+  <div class="rj text-center mb-12">
+    <div class="inline-block mb-4">
+      <div class="flex items-center justify-center gap-2">
+        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <h2 class="ek ck kk wm xb text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      ATS Resume Checker
+    </h2>
+    <h3 class="hk yj kk wm ob mc text-xl text-gray-600 mt-3">
+      Upload your resume and paste the job description for instant AI-powered analysis
+    </h3>
+    <div class="flex flex-wrap items-center justify-center gap-4 mt-4">
+      <div class="flex items-center gap-2 text-sm text-gray-500">
+        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>PDF Only</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-500">
+        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Max 10MB</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-500">
+        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Instant Analysis</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+          <div class="flex items-center justify-between px-5 py-4 rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] 
+              {% if message.tags == 'error' %}bg-gradient-to-r from-red-500 to-red-600 text-white
+              {% elif message.tags == 'success' %}bg-gradient-to-r from-green-500 to-green-600 text-white
+              {% elif message.tags == 'warning' %}bg-gradient-to-r from-yellow-400 to-yellow-500 text-black
+              {% else %}bg-gradient-to-r from-blue-500 to-blue-600 text-white{% endif %}">
+              <div class="flex items-center gap-3">
+                {% if message.tags == 'success' %}
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {% elif message.tags == 'error' %}
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {% endif %}
+                <span class="font-medium">{{ message }}</span>
+              </div>
+              <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold hover:opacity-80 transition-opacity">&times;</button>
+          </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Premium Form Card -->
+  <div class="relative overflow-hidden bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+    <!-- Decorative Background -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full -mr-32 -mt-32 opacity-50"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full -ml-32 -mb-32 opacity-50"></div>
+    
+    <form method="POST" action="{% url 'dashboard' %}" enctype="multipart/form-data" class="relative z-10" id="atsForm">
+      {% csrf_token %}
+      
+      <!-- Resume Upload Section -->
+      <div class="mb-8">
+        <label class="block text-gray-800 font-bold mb-3 text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Upload Resume (PDF)
+        </label>
+        
+        <div class="relative">
+          <input type="file" name="resume" accept=".pdf" required 
+                 id="resumeInput"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+          <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 transition-all duration-300 bg-gray-50">
+            <div class="text-center">
+              <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              <p class="text-gray-600 font-medium" id="fileNameDisplay">Click to upload or drag and drop</p>
+              <p class="text-xs text-gray-500 mt-1">PDF files only (Max 10MB)</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Job Title Field -->
+      <div class="mb-5">
+        <label class="block text-gray-800 font-bold mb-3 text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          Job Title
+        </label>
+        <input type="text" name="title" placeholder="e.g., Senior Full Stack Developer" required
+               class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white">
+      </div>
+      
+      <!-- Company Field -->
+      <div class="mb-5">
+        <label class="block text-gray-800 font-bold mb-3 text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          Company <span class="text-gray-400 text-sm font-normal">(optional)</span>
+        </label>
+        <input type="text" name="company" placeholder="e.g., Google, Microsoft, Startup Inc."
+               class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white">
+      </div>
+      
+      <!-- Job Description Field -->
+      <div class="mb-8">
+        <label class="block text-gray-800 font-bold mb-3 text-lg flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Job Description
+        </label>
+        <textarea name="jd_text" rows="8" placeholder="Paste the complete job description here..." required
+                  class="w-full px-5 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 bg-gray-50 focus:bg-white resize-y"></textarea>
+        <p class="text-xs text-gray-500 mt-2 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Tip: Include all requirements, responsibilities, and skills for better analysis
+        </p>
+      </div>
+      
+      <!-- Submit Button with Centered Loading Spinner -->
+      <div class="text-center">
+        <button type="submit" 
+                id="submitBtn"
+                class="relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-4 px-12 rounded-xl transition-all duration-300 text-lg shadow-lg hover:shadow-xl active:scale-95 overflow-hidden w-full sm:w-auto min-w-[280px]">
+          <!-- Normal State -->
+          <div class="normal-state flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <span>Analyze & Get ATS Score</span>
+          </div>
+          <!-- Loading State (Hidden by default) -->
+          <div class="loading-state hidden items-center justify-center gap-3">
+            <div>
+              <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            </div>
+            <div>
+              <span>Analyzing your resume...</span>
+            </div>
+          </div>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Recent Analyses Section -->
+  {% if recent_scores %}
+  <div class="mt-12">
+    <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Recent Analyses
+    </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for score in recent_scores %}
+      <div class="bg-white rounded-xl shadow-md p-4 hover:shadow-xl transition-all duration-300 border border-gray-100 hover:border-blue-200 group">
+        <div class="flex justify-between items-start mb-2">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">{{ score.resume.filename|truncatechars:30 }}</h4>
+            <p class="text-sm text-gray-600 truncate">{{ score.job_description.title|truncatechars:40 }}</p>
+          </div>
+          <div class="text-lg font-bold {% if score.overall_score >= 70 %}text-green-600{% elif score.overall_score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}">
+            {{ score.overall_score|floatformat:0 }}%
+          </div>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+          <div class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500" style="width: {{ score.overall_score }}%"></div>
+        </div>
+        <a href="{% url 'score_detail' pk=score.id %}" class="block text-center mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium group-hover:translate-x-1 transition-transform inline-block w-full">
+          View Details →
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+</section>
+
+<style>
+/* Animation keyframes */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* File input styling */
+#resumeInput:valid + .border-2 {
+  border-color: #10B981;
+  background-color: #F0FDF4;
+}
+#resumeInput:valid + .border-2 svg {
+  stroke: #10B981;
+}
+</style>
+
+<script>
+// Simple script to show loading state on form submission
+document.getElementById('atsForm')?.addEventListener('submit', function() {
+  const submitBtn = document.getElementById('submitBtn');
+  const normalState = submitBtn.querySelector('.normal-state');
+  const loadingState = submitBtn.querySelector('.loading-state');
+  
+  // Show loading state, hide normal state
+  normalState.classList.add('hidden');
+  loadingState.classList.remove('hidden');
+  
+  // Disable the button to prevent multiple submissions
+  submitBtn.disabled = true;
+  
+  // Change button styles for loading state
+  submitBtn.classList.remove('hover:from-blue-700', 'hover:to-purple-700');
+  submitBtn.classList.add('from-blue-700', 'to-purple-700', 'cursor-not-allowed');
+});
+
+// Filename display (cosmetic only)
+document.getElementById('resumeInput')?.addEventListener('change', function(e) {
+  const fileName = e.target.files[0]?.name;
+  const displayElement = document.getElementById('fileNameDisplay');
+  if (fileName && displayElement) {
+    displayElement.textContent = fileName;
+    displayElement.classList.add('text-green-600', 'font-semibold');
+  } else if (displayElement) {
+    displayElement.textContent = 'Click to upload or drag and drop';
+    displayElement.classList.remove('text-green-600', 'font-semibold');
+  }
+});
+</script>
+
+{% endblock content %}
