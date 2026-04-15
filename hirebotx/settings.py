@@ -15,13 +15,18 @@ SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret")
 
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = ['.onrender.com', '127.0.0.1', 'localhost']
-
+ALLOWED_HOSTS = [
+    'hirebotx.onrender.com',
+    '127.0.0.1',
+    'localhost',
+    'https://hirebotx.onrender.com',
+]
 
 # ========================
 # APPLICATIONS
 # ========================
 INSTALLED_APPS = [
+
     'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
