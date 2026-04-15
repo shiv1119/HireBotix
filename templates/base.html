@@ -1,16 +1,84 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Anti-flicker script - prevents flash of wrong theme and unstyled content -->
+  <script>
+    (function() {
+      try {
+        // Set theme immediately
+        const savedMode = localStorage.getItem('darkMode');
+        const isDark = savedMode !== null ? JSON.parse(savedMode) : true;
+        
+        // Apply dark mode classes immediately to prevent flash
+        if (isDark) {
+          document.documentElement.classList.add('dark-mode');
+          document.body.classList.add('b', 'eh');
+        } else {
+          document.documentElement.classList.remove('dark-mode');
+        }
+        
+        // Add a class to hide content until CSS loads
+        document.documentElement.classList.add('css-loading');
+        
+        // Remove the loading class once CSS is loaded
+        window.addEventListener('load', function() {
+          setTimeout(function() {
+            document.documentElement.classList.remove('css-loading');
+          }, 50);
+        });
+      } catch(e) {
+        console.error('Theme initialization error:', e);
+      }
+    })();
+  </script>
+
+  <style>
+    /* Critical CSS to prevent SVG and content flash */
+    .css-loading img,
+    .css-loading svg,
+    .css-loading .xl,
+    .css-loading [class*="w-"],
+    .css-loading [class*="h-"] {
+      visibility: hidden !important;
+    }
+    
+    /* Ensure SVGs have proper sizing even before CSS loads */
+    img, svg {
+      max-width: 100%;
+      height: auto;
+    }
+    
+    /* Prevent layout shift */
+    .css-loading {
+      overflow: hidden;
+    }
+    
+    /* Hide content briefly until styles are ready */
+    .css-loading body {
+      opacity: 0;
+      min-height: 100vh;
+    }
+    
+    /* Fade in smoothly */
+    body {
+      opacity: 1;
+      transition: opacity 0.15s ease-in-out;
+    }
+  </style>
+
   <title>{% block title %}Base - Tailwind CSS Startup Template{% endblock %}</title>
 
   <link rel="icon" href="{% static 'img/favicon.ico' %}">
   <link href="{% static 'css/style.css' %}" rel="stylesheet">
+  
+  <!-- Preload critical assets -->
+  <link rel="preload" href="{% static 'css/style.css' %}" as="style">
+  <link rel="preload" href="https://cdn.tailwindcss.com" as="script">
 </head>
 
 <body x-data="{ page: '{% block page %}home{% endblock %}', darkMode: true, stickyMenu: false, navigationOpen: false, scrollTop: false }"
