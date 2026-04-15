@@ -156,7 +156,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ========================
-# EMAIL
+# EMAIL - SEND REAL EMAILS IN BOTH DEVELOPMENT AND PRODUCTION
 # ========================
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
@@ -165,6 +165,18 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# Add timeout to prevent hanging (5 seconds)
+EMAIL_TIMEOUT = 5
+
+# Check if email credentials are provided
+if not EMAIL_HOST_USER or not EMAIL_HOST_PASSWORD:
+    print("=" * 50)
+    print("WARNING: Email credentials not found in .env file!")
+    print("Please add EMAIL_HOST_USER and EMAIL_HOST_PASSWORD to your .env file")
+    print("Using console backend for now...")
+    print("=" * 50)
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
 # ========================
@@ -177,6 +189,95 @@ DOMAIN = os.getenv("DOMAIN", "http://127.0.0.1:8000")
 JAZZMIN_SETTINGS = {
     "copyright": "HireBotx",
 }
+
+
+# ========================
+# LOGGING CONFIGURATION
+# ========================
+# Create logs directory only in production
+if not DEBUG:
+    logs_dir = BASE_DIR / 'logs'
+    if not logs_dir.exists():
+        logs_dir.mkdir(exist_ok=True)
+
+# Configure logging based on environment
+if DEBUG:
+    # Development: Only console logging
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'simple': {
+                'format': '{levelname} {asctime} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'loggers': {
+            'user': {
+                'handlers': ['console'],
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
+else:
+    # Production: Console + File logging
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'verbose': {
+                'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+                'style': '{',
+            },
+            'simple': {
+                'format': '{levelname} {asctime} {message}',
+                'style': '{',
+            },
+        },
+        'handlers': {
+            'console': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'simple',
+            },
+            'file': {
+                'class': 'logging.FileHandler',
+                'filename': BASE_DIR / 'logs' / 'email.log',
+                'formatter': 'verbose',
+            },
+        },
+        'root': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'loggers': {
+            'user': {
+                'handlers': ['console', 'file'],
+                'level': 'DEBUG',
+                'propagate': False,
+            },
+            'django': {
+                'handlers': ['console'],
+                'level': 'INFO',
+                'propagate': False,
+            },
+        },
+    }
 
 
 # ========================

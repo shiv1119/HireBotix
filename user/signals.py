@@ -1,3 +1,4 @@
+# user/signals.py
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import User
@@ -11,11 +12,17 @@ from django.contrib.sessions.models import Session
 from django.dispatch import receiver
 from django.contrib.auth.signals import user_logged_in
 from .models import *
-from django.dispatch import receiver
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.urls import reverse
+import logging
+from django.conf import settings
+
+# Import the async email function
+from .email_utils import send_email_async
+
+logger = logging.getLogger(__name__)
 
 @receiver(post_save, sender=User)
 def create_notification_preferences(sender, instance, created, **kwargs):
@@ -42,7 +49,8 @@ def get_location(ip):
                 "latitude": data.get("latitude"),
                 "longitude": data.get("longitude"),
             }
-    except requests.RequestException:
+    except requests.RequestException as e:
+        logger.error(f"Location fetch failed for IP {ip}: {str(e)}")
         pass 
     return None
 
@@ -99,51 +107,53 @@ def extract_model_from_ua(user_agent_string):
 
 @receiver(user_logged_in)
 def log_login(sender, request, user, **kwargs):
-    ip = get_client_ip(request)
-    user_agent_str = request.META.get("HTTP_USER_AGENT", "")
-    user_agent = user_agents.parse(user_agent_str)
-    os = f"{user_agent.os.family} {user_agent.os.version_string}" or "Unknown OS"
-    device = extract_device_name(user_agent, user_agent_str)
-    location = get_location(ip)  # Fetch location
+    try:
+        ip = get_client_ip(request)
+        user_agent_str = request.META.get("HTTP_USER_AGENT", "")
+        user_agent = user_agents.parse(user_agent_str)
+        os = f"{user_agent.os.family} {user_agent.os.version_string}" or "Unknown OS"
+        device = extract_device_name(user_agent, user_agent_str)
+        location = get_location(ip)
 
-    session_key = request.session.session_key
-    request.session["device"] = device
-    request.session["operating_system"] = os
-    request.session["last_activity"] = now().isoformat()
-    request.session.modified = True
+        session_key = request.session.session_key
+        request.session["device"] = device
+        request.session["operating_system"] = os
+        request.session["last_activity"] = now().isoformat()
+        request.session.modified = True
 
-    existing_record = LoginHistory.objects.filter(user=user, ip_address=ip, device=device).first()
+        existing_record = LoginHistory.objects.filter(user=user, ip_address=ip, device=device).first()
 
-    if existing_record:
-        existing_record.timestamp = now()
-        existing_record.session_key = session_key
-        existing_record.city = location["city"] if location else "Unknown"
-        existing_record.region = location["region"] if location else "Unknown"
-        existing_record.country = location["country"] if location else "Unknown"
-        existing_record.latitude = location["latitude"] if location else None
-        existing_record.longitude = location["longitude"] if location else None
-        existing_record.save()
-    else:
-        LoginHistory.objects.create(
-            user=user, ip_address=ip, user_agent=user_agent_str,
-            device=device, operating_system=os, session_key=session_key,
-            city=location["city"] if location else "Unknown",
-            region=location["region"] if location else "Unknown",
-            country=location["country"] if location else "Unknown",
-            latitude=location["latitude"] if location else None,
-            longitude=location["longitude"] if location else None,
-        )
-
+        if existing_record:
+            existing_record.timestamp = now()
+            existing_record.session_key = session_key
+            existing_record.city = location["city"] if location else "Unknown"
+            existing_record.region = location["region"] if location else "Unknown"
+            existing_record.country = location["country"] if location else "Unknown"
+            existing_record.latitude = location["latitude"] if location else None
+            existing_record.longitude = location["longitude"] if location else None
+            existing_record.save()
+        else:
+            LoginHistory.objects.create(
+                user=user, ip_address=ip, user_agent=user_agent_str,
+                device=device, operating_system=os, session_key=session_key,
+                city=location["city"] if location else "Unknown",
+                region=location["region"] if location else "Unknown",
+                country=location["country"] if location else "Unknown",
+                latitude=location["latitude"] if location else None,
+                longitude=location["longitude"] if location else None,
+            )
+    except Exception as e:
+        logger.error(f"Error in log_login signal for user {user.username}: {str(e)}")
 
 from .helpers import create_notification 
-from django.conf import settings
 
 @receiver(post_save, sender=ContactUs)
 def send_contact_email_and_notification(sender, instance, created, **kwargs):
+    if not created:
+        return
     
-    if created:
+    try:
         site_url = f"{settings.SITE_URL}"
-
         admin_link = f"{site_url}{reverse('admin:user_contactus_change', args=[instance.id])}"
 
         admin_emails = list(User.objects.filter(is_staff=True).values_list('email', flat=True))
@@ -157,15 +167,14 @@ def send_contact_email_and_notification(sender, instance, created, **kwargs):
                 "message": instance.message,
                 "admin_link": admin_link
             })
-
-            email = EmailMultiAlternatives(
+            
+            # Send email asynchronously - NO BLOCKING
+            send_email_async(
                 subject=f"New Contact Us Message: {instance.subject}",
-                body="A new contact us message has been received.",
-                from_email=None, 
-                to=admin_emails
+                html_message=email_html_content,
+                recipient_list=admin_emails
             )
-            email.attach_alternative(email_html_content, "text/html")
-            email.send()
+        
         admins = User.objects.filter(is_staff=True)
         for admin in admins:
             create_notification(
@@ -174,16 +183,23 @@ def send_contact_email_and_notification(sender, instance, created, **kwargs):
                 message=f"New Contact Us message from {instance.name}: {instance.subject}",
                 related_object=instance
             )
+    except Exception as e:
+        logger.error(f"Error in send_contact_email_and_notification: {str(e)}")
 
 from django.utils.html import strip_tags
+
 @receiver(post_save, sender=LoginHistory)
 def login_notification(sender, instance, created, **kwargs):
-    if created:
+    if not created:
+        return
+    
+    try:
         user = instance.user
         try:
             preferences = user.notification_preferences
         except NotificationPreferences.DoesNotExist:
             return
+        
         last_login = LoginHistory.objects.filter(user=user).exclude(id=instance.id).order_by("-timestamp").first()
 
         if last_login:
@@ -199,58 +215,67 @@ def login_notification(sender, instance, created, **kwargs):
                     message=message,
                     related_object=instance
                 )
+                
                 if preferences.email_notifications:
-                    password_reset_url = f"{settings.SITE_URL}{reverse('password_reset')}"
-                    contact_support_url = f"{settings.SITE_URL}{reverse('contact-us')}"
+                    try:
+                        password_reset_url = f"{settings.SITE_URL}{reverse('password_reset')}"
+                        contact_support_url = f"{settings.SITE_URL}{reverse('contact-us')}"
 
-                    email_context = {
-                        "user": user,
-                        "city": instance.city or "Unknown",
-                        "country": instance.country or "Unknown",
-                        "device": instance.device or "Unknown Device",
-                        "os": instance.operating_system or "Unknown OS",
-                        "timestamp": instance.timestamp,
-                        "reset_password_url": password_reset_url,
-                        "support_url": contact_support_url,
-                    }
+                        email_context = {
+                            "user": user,
+                            "city": instance.city or "Unknown",
+                            "country": instance.country or "Unknown",
+                            "device": instance.device or "Unknown Device",
+                            "os": instance.operating_system or "Unknown OS",
+                            "timestamp": instance.timestamp,
+                            "reset_password_url": password_reset_url,
+                            "support_url": contact_support_url,
+                        }
 
-                    html_message = render_to_string("user/email/new_login_alert.html", email_context)
-                    plain_message = strip_tags(html_message)
-
-                    send_mail(
-                        subject="New Login Alert",
-                        message=plain_message,
-                        from_email=settings.DEFAULT_FROM_EMAIL,
-                        recipient_list=[user.email],
-                        html_message=html_message,
-                        fail_silently=False,
-                    )
-
+                        html_message = render_to_string("user/email/new_login_alert.html", email_context)
+                        
+                        # Send email asynchronously - NO BLOCKING
+                        send_email_async(
+                            subject="New Login Alert",
+                            html_message=html_message,
+                            recipient_list=[user.email]
+                        )
+                    except Exception as e:
+                        logger.error(f"Failed to send login alert email to {user.email}: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error in login_notification signal: {str(e)}")
 
 from django.contrib.auth import get_user_model
 User = get_user_model()
+
 @receiver(post_save, sender=UserProfile)
 def user_profile_updated(sender, instance, created, **kwargs):
-    user = instance.user
     if created:
         return
-    create_notification(
-        user=user,
-        notification_type="user_update",
-        message="Your profile has been updated!",
-        related_object=instance
-    )
+    
+    try:
+        user = instance.user
+        create_notification(
+            user=user,
+            notification_type="user_update",
+            message="Your profile has been updated!",
+            related_object=instance
+        )
+    except Exception as e:
+        logger.error(f"Error in user_profile_updated signal: {str(e)}")
 
 from django.db.models.signals import pre_delete
 
 @receiver(pre_delete, sender=User)
 def send_account_deletion_email(sender, instance, **kwargs):
     try:
-        preferences = instance.notification_preferences
-    except NotificationPreferences.DoesNotExist:
-        return
-    if preferences.email_notifications:
-        subject = "Your Account Has Been Deleted"
+        try:
+            preferences = instance.notification_preferences
+            if not preferences.email_notifications:
+                return
+        except NotificationPreferences.DoesNotExist:
+            return
+        
         support_url = f"{settings.SITE_URL}{reverse('contact-us')}"
 
         context = {
@@ -259,21 +284,22 @@ def send_account_deletion_email(sender, instance, **kwargs):
         }
         
         html_message = render_to_string("user/email/account_delete.html", context)
-        plain_message = strip_tags(html_message)
-
-        send_mail(
-            subject=subject,
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[instance.email],
+        
+        # Send email asynchronously - NO BLOCKING
+        send_email_async(
+            subject="Your Account Has Been Deleted",
             html_message=html_message,
-            fail_silently=True
+            recipient_list=[instance.email]
         )
+    except Exception as e:
+        logger.error(f"Error in send_account_deletion_email: {str(e)}")
 
-User = get_user_model()
 @receiver(post_save, sender=Subscriber)
 def send_subscription_notification(sender, instance, created, **kwargs):
-    if created:
+    if not created:
+        return
+    
+    try:
         email = instance.email
         user = User.objects.filter(email=email).first()  
         unsubscribe_link = f"{settings.SITE_URL}{reverse('unsubscribe', args=[instance.unsubscribe_token])}"
@@ -281,46 +307,47 @@ def send_subscription_notification(sender, instance, created, **kwargs):
         html_message = render_to_string("user/email/subscription_email.html", {
             "unsubscribe_link": unsubscribe_link
         })
-        plain_message = strip_tags(html_message)
-
-        send_mail(
+        
+        # Send email asynchronously - NO BLOCKING
+        send_email_async(
             subject="Newsletter Subscription Confirmation",
-            message=plain_message,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
             html_message=html_message,
-            fail_silently=False,
+            recipient_list=[email],
+            from_email=settings.EMAIL_HOST_USER
         )
 
         if user:
             create_notification(user, "subscription", "Thank you for subscribing to our newsletter!")
 
-            preferences = NotificationPreferences.objects.filter(user=user).first()
-            if preferences and preferences.email_notifications:
-                pass  
-
         instance.notified = True
-        instance.save()
+        instance.save(update_fields=['notified'])
+    except Exception as e:
+        logger.error(f"Error in send_subscription_notification for {instance.email}: {str(e)}")
 
 from django.db.models.signals import post_delete
+
 @receiver(post_delete, sender=Subscriber)
 def send_unsubscription_notification(sender, instance, **kwargs):
-    email = instance.email
-    user = User.objects.filter(email=email).first()  
+    try:
+        email = instance.email
+        user = User.objects.filter(email=email).first()  
 
-    html_message = render_to_string("user/email/unsubscribe_confirmation.html", {"url_home":settings.SITE_URL})
-    plain_message = strip_tags(html_message)
+        html_message = render_to_string("user/email/unsubscribe_confirmation.html", {"url_home": settings.SITE_URL})
+        
+        # Send email asynchronously - NO BLOCKING
+        send_email_async(
+            subject="Unsubscription Confirmation",
+            html_message=html_message,
+            recipient_list=[email],
+            from_email=settings.EMAIL_HOST_USER
+        )
 
-    send_mail(
-        subject="Unsubscription Confirmation",
-        message=plain_message,
-        from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[email],
-        html_message=html_message,
-        fail_silently=False,
-    )
-
-    if user:
-        preferences = NotificationPreferences.objects.filter(user=user).first()
-        if preferences and preferences.email_notifications:
-            create_notification(user, "unsubscription", "You have unsubscribed from our newsletter.")
+        if user:
+            try:
+                preferences = user.notification_preferences
+                if preferences and preferences.email_notifications:
+                    create_notification(user, "unsubscription", "You have unsubscribed from our newsletter.")
+            except NotificationPreferences.DoesNotExist:
+                pass
+    except Exception as e:
+        logger.error(f"Error in send_unsubscription_notification: {str(e)}")

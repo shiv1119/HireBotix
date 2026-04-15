@@ -45,6 +45,12 @@ from applications.models import (
     Certification, Project, AwardAchievement, Link
 )
 
+# Import async email utility
+from .email_utils import send_email_async
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Home(TemplateView):
     template_name = "user/home.html"
@@ -54,7 +60,8 @@ class Home(TemplateView):
         context['announcements'] = Announcement.objects.order_by('-created_at')[:5]
         context['testimonials'] = Testimonial.objects.all().order_by('-created_at')[:5]
         return context
-    
+
+
 class SignupView(View):
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -63,7 +70,6 @@ class SignupView(View):
         return render(request, "user/register.html", {"form": form})
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         form = SignupForm(request.POST)
 
         if form.is_valid():
@@ -74,6 +80,8 @@ class SignupView(View):
                     password=form.cleaned_data["password1"]
                 )
                 user.is_active = False  
+                user.save()
+                
                 current_site = get_current_site(request)
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
@@ -82,32 +90,38 @@ class SignupView(View):
                 subject = "Activate Your Account"
                 html_message = render_to_string("user/activation_email.html", {
                     "user": user,
-                    "activation_link": activation_link
+                    "activation_link": activation_link,
+                    "username": user.username
                 })
-                plain_message = strip_tags(html_message)  
-                email = EmailMultiAlternatives(subject, plain_message, "your-email@gmail.com", [user.email])
-                email.attach_alternative(html_message, "text/html")
-                email.send()
+                
+                # Send email asynchronously
+                send_email_async(
+                    subject=subject,
+                    html_message=html_message,
+                    recipient_list=[user.email]
+                )
 
                 messages.success(request, "A verification email has been sent to your email. Please check your inbox.")
                 return redirect("login")
+                
             except IntegrityError:
                 messages.error(request, "Username or email already exists.")
             except Exception as e:
-                print(e)
+                logger.error(f"Signup error: {str(e)}")
                 messages.error(request, "An error occurred. Please try again.")
         else:
             messages.error(request, "Entered data is invalid. Please try again.")
 
         return render(request, "user/register.html", {"form": form})
 
+
 class ActivateAccountView(View):
     def get(self, request, uidb64, token, *args, **kwargs):
         try:
-            uid = force_str(urlsafe_base64_decode(uidb64))  # Decode user ID
+            uid = force_str(urlsafe_base64_decode(uidb64))
             user = User.objects.get(pk=uid)
 
-            if default_token_generator.check_token(user, token):  # Validate token
+            if default_token_generator.check_token(user, token):
                 user.is_active = True
                 user.save()
                 messages.success(request, "Your account has been activated successfully! You can now log in.")
@@ -115,15 +129,11 @@ class ActivateAccountView(View):
             else:
                 messages.error(request, "The activation link is invalid or has expired.")
                 return redirect("register")
-        except (User.DoesNotExist, ValueError, TypeError):
+        except (User.DoesNotExist, ValueError, TypeError) as e:
+            logger.error(f"Activation error: {str(e)}")
             messages.error(request, "The activation link is invalid.")
             return redirect("register")
 
-from django.contrib.auth.views import LoginView
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from user.models import UserProfile
 
 class SigninView(LoginView):
     def get(self, request, *args, **kwargs):
@@ -133,7 +143,6 @@ class SigninView(LoginView):
 
     def post(self, request, *args, **kwargs):
         try:
-            print(request.POST)
             username = request.POST.get("username")
             password = request.POST.get("password")
             next_url = request.POST.get("next") or request.GET.get("next") or "home"
@@ -150,27 +159,26 @@ class SigninView(LoginView):
 
                 login(request, user)
                 messages.success(request, "Successfully logged in.")
-                
-                # if not UserProfile.objects.filter(user=user).exists():
-                #     return redirect("create_profile")
-
                 return redirect(next_url) if next_url else redirect("home")
 
             messages.error(request, "Invalid credentials. Please try again.")
             return redirect("login")
         except Exception as e:
+            logger.error(f"Login error: {str(e)}")
             messages.error(request, "An error occurred. Please try again.")
             return redirect("login")
 
-        
+
 class LogoutView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         try:
             logout(request)
             messages.success(request, "Logged out successfully")
-        except Exception:
+        except Exception as e:
+            logger.error(f"Logout error: {str(e)}")
             messages.error(request, "An error occurred while logging out. Please try again.")
         return redirect("home")
+
 
 class ProfileCreateView(LoginRequiredMixin, CreateView):
     template_name = "user/create_profile.html"
@@ -182,7 +190,8 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
             form.instance.user = self.request.user
             messages.success(self.request, "Profile created successfully")
             return super().form_valid(form)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Profile create error: {str(e)}")
             messages.error(self.request, "An error occurred while creating the profile. Please try again.")
             return self.render_to_response(self.get_context_data(form=form))
 
@@ -190,11 +199,11 @@ class ProfileCreateView(LoginRequiredMixin, CreateView):
         messages.error(self.request, "Unable to create profile. Check fields and try again.")
         return self.render_to_response(self.get_context_data(form=form))
 
+
 class ProfileView(LoginRequiredMixin, TemplateView):
     template_name = "user/profile.html"
     
     def dispatch(self, request, *args, **kwargs):
-        # Check if user has a profile, if not redirect to create profile
         if not UserProfile.objects.filter(user=request.user).exists():
             messages.warning(request, "Please complete your profile information.")
             return redirect("create_profile")
@@ -204,52 +213,44 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         
         try:
-            # Get user profile
             context["profile"] = UserProfile.objects.get(user=self.request.user)
             context["user"] = self.request.user
             
-            # Get professional summary
             try:
                 context["summary"] = ProfessionalSummary.objects.get(user=self.request.user)
             except ProfessionalSummary.DoesNotExist:
                 context["summary"] = None
             
-            # Get education (ordered by end year descending)
             context["educations"] = Education.objects.filter(
                 user=self.request.user
             ).order_by('-end_year', '-start_year')
             
-            # Get experience (ordered by start date descending)
             context["experiences"] = Experience.objects.filter(
                 user=self.request.user
             ).order_by('-start_date')
             
-            # Get skills
             context["skills"] = Skill.objects.filter(
                 user=self.request.user
             ).order_by('name')
             
-            # Get certifications (ordered by date descending)
             context["certifications"] = Certification.objects.filter(
                 user=self.request.user
             ).order_by('-date')
             
-            # Get projects (ordered by created date descending)
             context["projects"] = Project.objects.filter(
                 user=self.request.user
             ).order_by('-created_at')
             
-            # Get awards and achievements (ordered by date descending)
             context["awards"] = AwardAchievement.objects.filter(
                 user=self.request.user
             ).order_by('-date')
             
-            # Get links - Fixed: order by 'name' instead of 'link_type'
             context["links"] = Link.objects.filter(
                 user=self.request.user
             ).order_by('name')
             
         except Exception as e:
+            logger.error(f"Profile view error: {str(e)}")
             messages.error(self.request, f"An error occurred while loading the profile: {str(e)}")
             context["profile"] = None
         
@@ -267,20 +268,21 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         except UserProfile.DoesNotExist:
             messages.error(self.request, "Profile does not exist.")
             return None
-        except Exception:
+        except Exception as e:
+            logger.error(f"Profile get error: {str(e)}")
             messages.error(self.request, "An error occurred while retrieving the profile.")
             return None
 
     def form_valid(self, form):
         try:
             form.instance.user = self.request.user
-            print(self.request.POST)
             if "profile_photo" in self.request.FILES:
                 form.instance.profile_photo = self.request.FILES["profile_photo"]
             form.save()
             messages.success(self.request, "Profile updated successfully")
             return super().form_valid(form)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Profile update error: {str(e)}")
             messages.error(self.request, "An error occurred while updating the profile.")
             return self.render_to_response(self.get_context_data(form=form))
 
@@ -293,12 +295,11 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
             context = super().get_context_data(**kwargs)
             context["user"] = self.request.user
             return context
-        except Exception:
+        except Exception as e:
+            logger.error(f"Profile context error: {str(e)}")
             messages.error(self.request, "An error occurred while loading profile data.")
             return {}
-    
-from django.db.models import Count,Avg
-from django.db.models.functions import Round
+
 
 class UserProfileDetailView(DetailView):
     model = UserProfile
@@ -308,39 +309,41 @@ class UserProfileDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         profile = self.object
-        services_with_reviews = Service.objects.filter(user=profile.user).annotate(
-            review_count=Count("feedbacks"),
-            average_rating=Round(Avg("feedbacks__rating"), 1)
-        )
-
-        # context["services"] = services_with_reviews
+        # services_with_reviews = Service.objects.filter(user=profile.user).annotate(
+        #     review_count=Count("feedbacks"),
+        #     average_rating=Round(Avg("feedbacks__rating"), 1)
+        # )
         return context
 
-    
-    
-from django.views.generic.edit import FormView
+
 class ContactUsView(FormView):
     template_name = "user/contact_us.html"
     form_class = ContactUsForm
     success_url = reverse_lazy('contact-us')
 
     def form_valid(self, form):
-        form.save() 
-        messages.success(self.request, "Your message has been sent successfully!")
+        try:
+            form.save()
+            messages.success(self.request, "Your message has been sent successfully!")
+        except Exception as e:
+            logger.error(f"Contact form error: {str(e)}")
+            messages.error(self.request, "There was an error sending your message.")
         return super().form_valid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, "There was an error. Please check the form fields.")
         return super().form_invalid(form)
 
+
 class PrivacyPolicy(TemplateView):
     template_name = 'user/privacy_policy.html'
+
 
 class TermsAndConditionView(TemplateView):
     template_name = 'user/terms_and_conditions.html'
 
 
-class NotificationView(LoginRequiredMixin, TemplateView ):
+class NotificationView(LoginRequiredMixin, TemplateView):
     template_name = "user/notifications.html"
 
     def get_context_data(self, **kwargs):
@@ -369,7 +372,6 @@ class NotificationView(LoginRequiredMixin, TemplateView ):
             messages.error(request, "Invalid type request")
             return redirect("notification")
         
-        
     def markRead(self, request):
         try:
             notification_id = request.POST.get("notification_id")
@@ -385,7 +387,8 @@ class NotificationView(LoginRequiredMixin, TemplateView ):
             messages.success(request, "Notification marked as read")
             return redirect('notification')
         except Exception as e:
-            messages.error(request, f"Error occurred while marking notification as read {str(e)}")
+            logger.error(f"Mark read error: {str(e)}")
+            messages.error(request, f"Error occurred while marking notification as read")
             return redirect("notification")
         
     def deleteNotification(self, request):
@@ -399,7 +402,8 @@ class NotificationView(LoginRequiredMixin, TemplateView ):
             messages.success(request, "Notification deleted successfully")
             return redirect("notification")
         except Exception as e:
-            messages.error(request, f"Error occurred while deleting notification {str(e)}")
+            logger.error(f"Delete notification error: {str(e)}")
+            messages.error(request, f"Error occurred while deleting notification")
             return redirect("notification")
         
     def clearNotification(self, request):
@@ -409,36 +413,33 @@ class NotificationView(LoginRequiredMixin, TemplateView ):
             if notification_type == "read_notification":
                 Notification.objects.filter(is_read=True).delete()
                 messages.success(request, "All read notifications cleared successfully.")
-
             elif notification_type == "unread_notification":
                 Notification.objects.filter(is_read=False).delete()
                 messages.success(request, "All unread notifications cleared successfully.")
-
             else:
                 messages.error(request, "Invalid notification type.")
-
             return redirect("notification")
-
         except Exception as e:
-            messages.error(request, f"Error occurred while clearing notifications: {str(e)}")
+            logger.error(f"Clear notification error: {str(e)}")
+            messages.error(request, f"Error occurred while clearing notifications")
             return redirect("notification")
         
     def markAllUnreadNotification(self, request):
         try:
             Notification.objects.filter(is_read=False).update(is_read=True)
-            
             messages.success(request, "All unread notifications marked as read successfully.")
             return redirect("notification")
-
         except Exception as e:
-            messages.error(request, f"Error occurred while marking unread notifications as read: {str(e)}")
+            logger.error(f"Mark all read error: {str(e)}")
+            messages.error(request, f"Error occurred while marking unread notifications as read")
             return redirect("notification")
+
 
 from django.utils.timezone import now
 from django.utils.timezone import localtime
-from django.utils.timezone import localtime
 from datetime import datetime, timedelta
 from django.utils.dateparse import parse_datetime
+
 
 class LoginHistoryView(LoginRequiredMixin, ListView):
     model = LoginHistory
@@ -448,7 +449,8 @@ class LoginHistoryView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         try:
             return LoginHistory.objects.filter(user=self.request.user).order_by("-timestamp")
-        except Exception:
+        except Exception as e:
+            logger.error(f"Login history error: {str(e)}")
             messages.error(self.request, "An error occurred while retrieving login history.")
             return LoginHistory.objects.none()
 
@@ -482,7 +484,8 @@ class LoginHistoryView(LoginRequiredMixin, ListView):
                     continue
 
             return active_sessions
-        except Exception:
+        except Exception as e:
+            logger.error(f"Active sessions error: {str(e)}")
             messages.error(self.request, "An error occurred while retrieving active sessions.")
             return []
 
@@ -491,10 +494,12 @@ class LoginHistoryView(LoginRequiredMixin, ListView):
             context = super().get_context_data(**kwargs)
             context["active_sessions"] = self.get_active_sessions()
             return context
-        except Exception:
+        except Exception as e:
+            logger.error(f"Login history context error: {str(e)}")
             messages.error(self.request, "An error occurred while loading login history.")
             return {}
     
+
 class LogoutSessionView(LoginRequiredMixin, View):
     def post(self, request, session_key, *args, **kwargs):
         if not session_key:
@@ -504,12 +509,15 @@ class LogoutSessionView(LoginRequiredMixin, View):
         try:
             session = Session.objects.get(session_key=session_key)
             session.delete()
-
             messages.success(request, "Session successfully logged out.")
         except Session.DoesNotExist:
             messages.error(request, "Session not found or already expired.")
+        except Exception as e:
+            logger.error(f"Logout session error: {str(e)}")
+            messages.error(request, "An error occurred while logging out the session.")
 
         return redirect('login_history')
+
 
 class SettingsView(LoginRequiredMixin, TemplateView):
     template_name = "user/settings.html"
@@ -519,7 +527,6 @@ class SettingsView(LoginRequiredMixin, TemplateView):
         context["user"] = self.request.user 
         return context
 
-from django.urls import reverse_lazy
 
 class NotificationPreferencesView(LoginRequiredMixin, UpdateView):
     model = NotificationPreferences
@@ -530,12 +537,15 @@ class NotificationPreferencesView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         obj, created = NotificationPreferences.objects.get_or_create(user=self.request.user)
         return obj
+    
     def form_valid(self, form):
         messages.success(self.request, "Notification preferences updated successfully!")
         return super().form_valid(form)
 
+
 class AccountManagementView(LoginRequiredMixin, TemplateView):
     template_name = "user/account_management.html"
+
 
 class DeleteAccountView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
@@ -544,19 +554,26 @@ class DeleteAccountView(LoginRequiredMixin, View):
             messages.error(request, "This account cannot be deleted.")
             return redirect("profile")
 
-        messages.warning(request, "Your account has been deleted.")
-        user.delete()
-        logout(request)
+        try:
+            messages.warning(request, "Your account has been deleted.")
+            user.delete()
+            logout(request)
+        except Exception as e:
+            logger.error(f"Account deletion error: {str(e)}")
+            messages.error(request, "An error occurred while deleting your account.")
+        
         return redirect('home')
-    
+
+
 class FAQView(TemplateView):
     template_name = "user/faq.html"
 
+
 from django.db.models import Q
-from django.views.generic import ListView
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
 
 class GlobalSearchView(TemplateView):
     template_name = "services/search_result.html"
@@ -566,21 +583,12 @@ class GlobalSearchView(TemplateView):
         query = self.request.GET.get("q", "").strip()
         
         if query:
-        #     services = Service.objects.filter(
-        #         Q(title__icontains=query) | Q(description__icontains=query) | Q(user__username__icontains=query)
-        #     ).annotate(
-        #         avg_rating=Avg("feedbacks__rating"),
-        #         total_ratings=Count("feedbacks")
-        #     )
-            
             users = User.objects.filter(
                 Q(username__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query)
             )
         else:
-            # services = Service.objects.none()
             users = User.objects.none()
 
-        # context["services"] = services
         context["users"] = users
         context["query"] = query
         return context
@@ -589,50 +597,64 @@ class GlobalSearchView(TemplateView):
 class ImageUpdateView(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         if "image" in request.FILES:
-            user_profile = request.user.profile
-            user_profile.profile_photo = request.FILES["image"]
-            user_profile.save()
-            messages.success(request, "Profile image updated successfully!")
+            try:
+                user_profile = request.user.profile
+                user_profile.profile_photo = request.FILES["image"]
+                user_profile.save()
+                messages.success(request, "Profile image updated successfully!")
+            except Exception as e:
+                logger.error(f"Image update error: {str(e)}")
+                messages.error(request, "An error occurred while updating the image.")
         else:
             messages.error(request, "No image selected. Please choose an image.")
 
         return redirect("profile")
 
+
 def subscribe_newsletter(request):
     if request.method == "POST":
         form = SubscriptionForm(request.POST)
-        print(request.POST)
         if form.is_valid():
-            email = form.cleaned_data["email"]
-            subscriber, created = Subscriber.objects.get_or_create(email=email, defaults={"is_subscribed": True})
+            try:
+                email = form.cleaned_data["email"]
+                subscriber, created = Subscriber.objects.get_or_create(email=email, defaults={"is_subscribed": True})
 
-            if not created:  
-                if not subscriber.is_subscribed:
-                    subscriber.is_subscribed = True
-                    subscriber.save()
-                    messages.success(request, "You have successfully resubscribed to the newsletter!")
+                if not created:  
+                    if not subscriber.is_subscribed:
+                        subscriber.is_subscribed = True
+                        subscriber.save()
+                        messages.success(request, "You have successfully resubscribed to the newsletter!")
+                    else:
+                        messages.warning(request, "You are already subscribed!")
                 else:
-                    messages.warning(request, "You are already subscribed!")
-            else:
-                messages.success(request, "Successfully subscribed to the newsletter!")
+                    messages.success(request, "Successfully subscribed to the newsletter!")
+            except Exception as e:
+                logger.error(f"Subscription error: {str(e)}")
+                messages.error(request, "An error occurred while subscribing.")
         else:
             messages.error(request, "Invalid email address.")
         return redirect("home")  
 
     return redirect("home") 
 
+
 class UnsubscribeView(View):
     def get(self, request, token):
-        subscriber = get_object_or_404(Subscriber, unsubscribe_token=token)
+        try:
+            subscriber = get_object_or_404(Subscriber, unsubscribe_token=token)
 
-        if subscriber.is_subscribed:
-            subscriber.delete() 
-            messages.success(request, "You have successfully unsubscribed from our newsletter.")
-        else:
-            messages.info(request, "You are already unsubscribed.")
+            if subscriber.is_subscribed:
+                subscriber.delete() 
+                messages.success(request, "You have successfully unsubscribed from our newsletter.")
+            else:
+                messages.info(request, "You are already unsubscribed.")
+        except Exception as e:
+            logger.error(f"Unsubscribe error: {str(e)}")
+            messages.error(request, "An error occurred while unsubscribing.")
 
         return render(request, "unsubscribe_confirmation.html")
     
+
 class CustomRedirectView(LoginRequiredMixin, RedirectView):
     def get(self, request, *args, **kwargs):
         if request.user.is_authenticated:
