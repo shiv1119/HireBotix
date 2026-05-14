@@ -42,7 +42,7 @@ from django.db import IntegrityError
 from django.conf import settings
 from applications.models import (
     ProfessionalSummary, Education, Experience, Skill,
-    Certification, Project, AwardAchievement, Link
+    Certification, Project, Link
 )
 
 # Import async email utility
@@ -240,10 +240,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             context["projects"] = Project.objects.filter(
                 user=self.request.user
             ).order_by('-created_at')
-            
-            context["awards"] = AwardAchievement.objects.filter(
-                user=self.request.user
-            ).order_by('-date')
+    
             
             context["links"] = Link.objects.filter(
                 user=self.request.user

@@ -1,28 +1,28 @@
-# views.py - Simplified version
+# views.py
 from django.views.generic import TemplateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect
 import logging
-
+from django.urls import reverse
+from urllib.parse import urlencode
 from .models import ExtractedResumeContent, JobDescription, ATSScore
-from .resume_parser import AdvancedResumeParser, parse_uploaded_file
-from .ats_scorer import AdvancedATSScorer
+from user.models import Notification
+from .resume_parser import parse_uploaded_file
+from .background_tasks import ATSTaskManager
 
 logger = logging.getLogger(__name__)
 
 
 class ATSDashboardView(LoginRequiredMixin, TemplateView):
-    """Main dashboard with resume upload and JD input"""
     template_name = 'ats_checker/dashboard.html'
     
     def post(self, request, *args, **kwargs):
-        # Handle resume upload
+        # Validation
         if not request.FILES.get('resume'):
             messages.error(request, 'Please upload a resume file')
             return redirect('dashboard')
         
-        # Handle JD form fields
         jd_text = request.POST.get('jd_text', '')
         job_title = request.POST.get('title', '')
         company = request.POST.get('company', '')
@@ -31,7 +31,7 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             messages.error(request, 'Please provide both job title and description')
             return redirect('dashboard')
         
-        # Process resume
+        # Extract text from uploaded file
         uploaded_file = request.FILES['resume']
         result = parse_uploaded_file(uploaded_file)
         
@@ -40,76 +40,30 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
             return redirect('dashboard')
         
         try:
-            parser = AdvancedResumeParser(use_llm=False)
-            
-            # Extract and save resume
-            resume_structured = parser.extract_comprehensive_resume_data(result['text'])
-            resume = ExtractedResumeContent.objects.create(
-                user=request.user,
+            # Start background processing (non-blocking)
+            ATSTaskManager.run_ats_analysis_async(
+                user_id=request.user.id,
+                resume_text=result['text'],
+                jd_text=jd_text,
+                job_title=job_title,
+                company=company,
                 filename=uploaded_file.name,
-                raw_text=result['text'],
-                structured_json=resume_structured,
                 extraction_method=result['method'],
                 word_count=len(result['text'].split())
             )
             
-            # Extract and save job description
-            jd_structured = parser.extract_comprehensive_jd_data(jd_text)
-            jd = JobDescription.objects.create(
-                user=request.user,
-                title=job_title,
-                company=company,
-                raw_text=jd_text,
-                formatted_jd=jd_text,
-                structured_json=jd_structured,
-                word_count=len(jd_text.split())
+            # Simple message - no JS, no API
+            messages.success(
+                request, 
+                f'Analysis started for "{job_title}"! You will be notified when ready. Check your notifications and visit the ATS results page to see your detailed analysis.'
             )
             
-            # Calculate ATS score
-            scorer = AdvancedATSScorer()
-            score_data = scorer.calculate_comprehensive_score(
-                resume.structured_json,
-                jd.structured_json,
-                resume.raw_text,
-                jd.raw_text
-            )
-            
-            # Save ATS score
-            ats_score = ATSScore.objects.create(
-                user=request.user,
-                resume=resume,
-                job_description=jd,
-                overall_score=score_data['overall_score'],
-                match_percentage=score_data['match_percentage'],
-                skills_match_score=score_data['skills_match_score'],
-                experience_match_score=score_data['experience_match_score'],
-                education_match_score=score_data['education_match_score'],
-                keyword_match_score=score_data['keyword_match_score'],
-                formatting_score=score_data['formatting_score'],
-                completeness_score=score_data['completeness_score'],
-                matching_skills=score_data['matching_skills'],
-                missing_skills=score_data['missing_skills'],
-                matching_keywords=score_data['matching_keywords'],
-                missing_keywords=score_data['missing_keywords'],
-                matching_experience=score_data['matching_experience'],
-                missing_experience=score_data['missing_experience'],
-                section_suggestions=score_data['section_suggestions'],
-                spelling_errors=score_data['spelling_errors'],
-                grammar_issues=score_data['grammar_issues'],
-                style_improvements=score_data['style_improvements'],
-                formatting_issues=score_data['formatting_issues'],
-                strengths=score_data['strengths'],
-                weaknesses=score_data['weaknesses'],
-                improvement_suggestions=score_data['improvement_suggestions'],
-                recommendations=score_data['recommendations'],
-                detailed_feedback=score_data['detailed_feedback']
-            )
-            
-            messages.success(request, f'ATS Score: {score_data["overall_score"]:.1f}%')
-            return redirect('score_detail', pk=ats_score.id)
+            base_url = reverse('dashboard')
+            query_string = urlencode({'show_modal': 'true', 'job_title': job_title})
+            return redirect(f'{base_url}?{query_string}')
             
         except Exception as e:
-            logger.error(f"Error processing: {str(e)}")
+            logger.error(f"Error: {str(e)}", exc_info=True)
             messages.error(request, f'Error: {str(e)}')
             return redirect('dashboard')
     
@@ -117,21 +71,42 @@ class ATSDashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['recent_scores'] = ATSScore.objects.filter(
             user=self.request.user
-        ).select_related('resume', 'job_description')[:5]
+        ).select_related('resume', 'job_description').order_by('-created_at')[:5]
+        
+        # Pass notifications to template for display
+        context['notifications'] = Notification.objects.filter(
+            user=self.request.user
+        ).order_by('-created_at')[:10]
+        
+        context['unread_count'] = Notification.objects.filter(
+            user=self.request.user, is_read=False
+        ).count()
+        
         return context
 
 
 class ScoreDetailView(LoginRequiredMixin, DetailView):
-    """Display detailed ATS score analysis"""
     model = ATSScore
     template_name = 'ats_checker/score_detail.html'
     context_object_name = 'score'
+    pk_url_kwarg = 'pk'
     
     def get_queryset(self):
-        return super().get_queryset().filter(user=self.request.user)
+        # Return all scores, no permission filtering
+        return ATSScore.objects.all()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Mark notification as read only if the notification belongs to the current user
+        # and is related to this score
+        Notification.objects.filter(
+            user=self.request.user,
+            related_object_id=str(self.object.id),
+            related_model="ATSScore",
+            is_read=False
+        ).update(is_read=True)
+        
         context['score_metrics'] = [
             {'label': 'Skills Match', 'score': self.object.skills_match_score, 'color': '#3B82F6'},
             {'label': 'Experience Match', 'score': self.object.experience_match_score, 'color': '#10B981'},
@@ -140,4 +115,18 @@ class ScoreDetailView(LoginRequiredMixin, DetailView):
             {'label': 'Formatting', 'score': self.object.formatting_score, 'color': '#EC4899'},
             {'label': 'Completeness', 'score': self.object.completeness_score, 'color': '#6366F1'},
         ]
+        
         return context
+    
+from django.views.generic import ListView
+class ATSResultsView(LoginRequiredMixin, ListView):
+    """Display user's top 10 latest ATS analyses"""
+    model = ATSScore
+    template_name = 'ats_checker/ats-results.html'
+    context_object_name = 'scores'
+    
+    def get_queryset(self):
+        """Get user's top 10 latest scores"""
+        return ATSScore.objects.filter(
+            user=self.request.user
+        ).select_related('resume', 'job_description').order_by('-created_at')[:10]

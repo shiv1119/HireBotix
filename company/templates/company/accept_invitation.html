@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Accept Invitation - {{ invitation.company.name }}{% endblock %}
+
+{% block page %}accept-invitation{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k animate-pulse" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m animate-bounce" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o animate-spin" style="animation-duration: 20s;" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q animate-pulse" />
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+  <!-- Bg Border -->
+  <span class="rc h r s zd/2 od zg gh bg-gradient-to-r from-blue-500 to-purple-500"></span>
+  <span class="rc h r q zd/2 od xg mh bg-gradient-to-r from-purple-500 to-pink-500"></span>
+
+  <!-- Header Section -->
+  <div class="rj text-center mb-12">
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        Accept Invitation
+      </h2>
+      <p class="text-gray-600 mt-1 text-sm">Join your team and start collaborating</p>
+    </div>
+  </div>
+
+  <!-- Results Card -->
+  <div class="relative overflow-hidden bg-white rounded-xl shadow-lg max-w-2xl mx-auto">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full -mr-32 -mt-32 opacity-50"></div>
+    <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full -ml-32 -mb-32 opacity-50"></div>
+    
+    <div class="relative z-10 p-8">
+      
+      <!-- Icon -->
+      <div class="text-center mb-6">
+        <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-gradient-to-r from-blue-100 to-purple-100">
+          <svg class="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">
+        Join {{ invitation.company.name }}
+      </h2>
+      
+      <p class="text-center text-gray-600 mb-8">
+        You have been invited to join as a <strong class="text-blue-600">{{ invitation.role.get_name_display }}</strong>
+      </p>
+      
+      <!-- Invitation Details -->
+      <div class="bg-gray-50 rounded-lg p-6 mb-8 border border-gray-200">
+        <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Invitation Details:
+        </h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between py-2 border-b border-gray-200">
+            <span class="text-gray-600 font-medium">Company:</span>
+            <span class="text-gray-900">{{ invitation.company.name }}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-200">
+            <span class="text-gray-600 font-medium">Role:</span>
+            <span class="text-gray-900">{{ invitation.role.get_name_display }}</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-gray-200">
+            <span class="text-gray-600 font-medium">Invited By:</span>
+            <span class="text-gray-900">{{ invitation.invited_by.user.get_full_name|default:invitation.invited_by.user.username }}</span>
+          </div>
+          <div class="flex justify-between py-2">
+            <span class="text-gray-600 font-medium">Expires:</span>
+            <span class="text-orange-600 font-medium">{{ invitation.expires_at|date:"F j, Y" }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-4">
+          <button type="submit" 
+                  class="flex-1 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium">
+            Accept Invitation
+          </button>
+          <a href="{% url 'home' %}" 
+             class="flex-1 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg text-center hover:bg-gray-300 transition-all font-medium">
+            Decline
+          </a>
+        </div>
+      </form>
+      
+      <!-- Back to Home Link -->
+      <div class="text-center mt-6">
+        <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to Home
+        </a>
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+</section>
+
+<style>
+  /* Animation keyframes */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+</style>
+
+{% endblock %}

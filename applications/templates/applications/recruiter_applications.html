@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Applications for {{ current_job.title }} - HireBotx{% endblock %}
 
 {% block page %}recruiter-applications{% endblock %}
 
 {% block content %}
-
 <section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
     <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
     <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
@@ -19,17 +19,17 @@
 
         <div class="rj text-center">
             <h2 class="ek ck kk wm xb">Applications for {{ current_job.title }}</h2>
-            <h3 class="hk yj kk wm ob mc">{{ current_job.company_name }} • {{ current_job.location }}</h3>
+            <h3 class="hk yj kk wm ob mc">{{ current_job.company.name }} • {{ current_job.location }}</h3>
         </div>
 
         {% if messages %}
         <div class="mt-6 mb-6 space-y-3">
             {% for message in messages %}
                 <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
-                    {% if message.tags == 'error' %}bg-red-500 text-white
-                    {% elif message.tags == 'success' %}bg-green-500 text-white
+                    {% if message.tags == 'error' %}bg-red-500 
+                    {% elif message.tags == 'success' %}bg-green-500 
                     {% elif message.tags == 'warning' %}bg-yellow-400 text-black
-                    {% else %}bg-blue-500 text-white{% endif %}">
+                    {% else %}bg-blue-500 {% endif %}">
                     <span>{{ message }}</span>
                     <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
                 </div>
@@ -38,121 +38,386 @@
         {% endif %}
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white/80 backdrop-blur-md rounded-lg shadow-md p-6 border-l-4 border-blue-500 border border-gray-200">
-                <p class="text-gray-600 text-sm">Total Applications</p>
-                <p class="text-2xl font-bold text-gray-900">{{ total_applications }}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Total Applications</p>
+                        <p class="text-3xl font-bold mt-2">{{ total_applications }}</p>
+                    </div>
+                    <div class="bg-blue-500/20 rounded-full p-3">
+                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white/80 backdrop-blur-md rounded-lg shadow-md p-6 border-l-4 border-green-500 border border-gray-200">
-                <p class="text-gray-600 text-sm">Applied</p>
-                <p class="text-2xl font-bold text-gray-900">{{ applied_count }}</p>
+            
+            <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Submitted</p>
+                        <p class="text-3xl font-bold mt-2">{{ submitted_count }}</p>
+                    </div>
+                    <div class="bg-green-500/20 rounded-full p-3">
+                        <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white/80 backdrop-blur-md rounded-lg shadow-md p-6 border-l-4 border-yellow-500 border border-gray-200">
-                <p class="text-gray-600 text-sm">Draft</p>
-                <p class="text-2xl font-bold text-gray-900">{{ draft_count }}</p>
+            
+            <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Shortlisted</p>
+                        <p class="text-3xl font-bold mt-2">{{ shortlisted_count|default:0 }}</p>
+                    </div>
+                    <div class="bg-yellow-500/20 rounded-full p-3">
+                        <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                    </div>
+                </div>
             </div>
-            <div class="bg-white/80 backdrop-blur-md rounded-lg shadow-md p-6 border-l-4 border-red-500 border border-gray-200">
-                <p class="text-gray-600 text-sm">Cancelled</p>
-                <p class="text-2xl font-bold text-gray-900">{{ cancelled_count }}</p>
+            
+            <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Hired</p>
+                        <p class="text-3xl font-bold mt-2">{{ hired_count|default:0 }}</p>
+                    </div>
+                    <div class="bg-purple-500/20 rounded-full p-3">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg p-6 border border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">GitHub Verified</p>
+                        <p class="text-3xl font-bold mt-2">{{ github_verified_count|default:0 }}</p>
+                    </div>
+                    <div class="bg-cyan-500/20 rounded-full p-3">
+                        <svg class="w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                        </svg>
+                    </div>
+                </div>
             </div>
         </div>
 
+        <!-- Filter Section - Accordion Style -->
+        <div class="mt-6 wb bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow hover:shadow-lg transition duration-300">
+            <div id="filterToggle"
+                class="flex items-center justify-between cursor-pointer px-5 py-4 transition">
+
+                <div class="flex items-center gap-3">
+                    <svg id="filterIcon" xmlns="http://www.w3.org/2000/svg"
+                        class="w-5 h-5 transition-transform duration-300"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 4h18M6 12h12M10 20h4"/>
+                    </svg>
+
+                    <h3 class="font-semibold text-lg">Filter Applications</h3>
+
+                    {% if current_filters.applicant_name or current_filters.status != 'all' or current_filters.ats_score_min or current_filters.ats_score_max or current_filters.date_from or current_filters.date_to %}
+                    <span class="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">
+                        Applied
+                    </span>
+                    {% endif %}
+
+                </div>
+
+                <svg id="arrowIcon" xmlns="http://www.w3.org/2000/svg"
+                    class="w-5 h-5 transition-transform duration-300"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        d="M19 9l-7 7-7-7"/>
+                </svg>
+
+            </div>
+            
+            <form id="filterPanel" method="GET" class="hidden p-6">
+                <p class="text-sm opacity-70 mb-4">
+                    Refine your applications
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Applicant Name Filter -->
+                    <input type="text" name="applicant_name" value="{{ current_filters.applicant_name }}" 
+                           class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md"
+                           placeholder="Applicant Name">
+                    
+                    <!-- Status Filter -->
+                    <select name="status" class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md">
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if current_filters.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <!-- GitHub Skills Verification Filter -->
+                    <select name="github_verified" class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md">
+                        <option value="all" {% if current_filters.github_verified == 'all' %}selected{% endif %}>All - GitHub Verified</option>
+                        <option value="yes" {% if current_filters.github_verified == 'yes' %}selected{% endif %}>Verified (Passed)</option>
+                        <option value="no" {% if current_filters.github_verified == 'no' %}selected{% endif %}>Not Verified (Failed)</option>
+                        <option value="pending" {% if current_filters.github_verified == 'pending' %}selected{% endif %}>Pending</option>
+                    </select>
+                    
+                    <!-- ATS Score Range - Min -->
+                    <input type="number" name="ats_score_min" value="{{ current_filters.ats_score_min }}" 
+                           class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md"
+                           placeholder="Min ATS Score %" min="0" max="100">
+                    
+                    <!-- ATS Score Range - Max -->
+                    <input type="number" name="ats_score_max" value="{{ current_filters.ats_score_max }}" 
+                           class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md"
+                           placeholder="Max ATS Score %" min="0" max="100">
+                    
+                    <!-- Date From -->
+                    <input type="date" name="date_from" value="{{ current_filters.date_from }}" 
+                           class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md"
+                           placeholder="Date From">
+                    
+                    <!-- Date To -->
+                    <input type="date" name="date_to" value="{{ current_filters.date_to }}" 
+                           class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md"
+                           placeholder="Date To">
+                    
+                    <!-- Sort By -->
+                    <select name="sort_by" class="vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md">
+                        <option value="-created_at" {% if current_filters.sort_by == '-created_at' %}selected{% endif %}>Newest First</option>
+                        <option value="created_at" {% if current_filters.sort_by == 'created_at' %}selected{% endif %}>Oldest First</option>
+                        <option value="user__first_name" {% if current_filters.sort_by == 'user__first_name' %}selected{% endif %}>Name (A-Z)</option>
+                        <option value="-user__first_name" {% if current_filters.sort_by == '-user__first_name' %}selected{% endif %}>Name (Z-A)</option>
+                        <option value="-ats_score__overall_score" {% if current_filters.sort_by == '-ats_score__overall_score' %}selected{% endif %}>ATS Score (High-Low)</option>
+                        <option value="ats_score__overall_score" {% if current_filters.sort_by == 'ats_score__overall_score' %}selected{% endif %}>ATS Score (Low-High)</option>
+                        <option value="status" {% if current_filters.sort_by == 'status' %}selected{% endif %}>Status (A-Z)</option>
+                        <option value="-status" {% if current_filters.sort_by == '-status' %}selected{% endif %}>Status (Z-A)</option>
+                        <option value="-is_github_skills_verified" {% if current_filters.sort_by == '-is_github_skills_verified' %}selected{% endif %}>GitHub Verified First</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-white/10">
+                    <a href="?sort_by={{ current_filters.sort_by }}"
+                        class="px-5 py-2 text-sm border border-red-400 text-red-400 rounded-md hover:bg-red-500 hover:text-white transition">
+                        Reset
+                    </a>
+                    <button type="submit"
+                        class="px-6 py-2 text-sm bg-blue-500 text-white rounded-md shadow hover:bg-blue-600 transition">
+                        Apply Filters
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- Applications Table -->
-        <div class="bg-white/80 backdrop-blur-md rounded-lg shadow-md overflow-hidden border border-gray-200">
+        <div class="bg-white/5 backdrop-blur-md rounded-xl shadow-lg overflow-hidden border border-white/10">
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50/80">
+                    <thead class="bg-white/10">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ATS Score</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?{% if current_filters.applicant_name %}applicant_name={{ current_filters.applicant_name }}&{% endif %}{% if current_filters.status != 'all' %}status={{ current_filters.status }}&{% endif %}{% if current_filters.github_verified != 'all' %}github_verified={{ current_filters.github_verified }}&{% endif %}{% if current_filters.ats_score_min %}ats_score_min={{ current_filters.ats_score_min }}&{% endif %}{% if current_filters.ats_score_max %}ats_score_max={{ current_filters.ats_score_max }}&{% endif %}{% if current_filters.date_from %}date_from={{ current_filters.date_from }}&{% endif %}{% if current_filters.date_to %}date_to={{ current_filters.date_to }}&{% endif %}sort_by={% if current_filters.sort_by == 'user__first_name' %}-user__first_name{% else %}user__first_name{% endif %}" class="hover: transition-colors">
+                                    Applicant
+                                    {% if current_filters.sort_by == 'user__first_name' %}↑{% elif current_filters.sort_by == '-user__first_name' %}↓{% endif %}
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?{% if current_filters.applicant_name %}applicant_name={{ current_filters.applicant_name }}&{% endif %}{% if current_filters.status != 'all' %}status={{ current_filters.status }}&{% endif %}{% if current_filters.github_verified != 'all' %}github_verified={{ current_filters.github_verified }}&{% endif %}{% if current_filters.ats_score_min %}ats_score_min={{ current_filters.ats_score_min }}&{% endif %}{% if current_filters.ats_score_max %}ats_score_max={{ current_filters.ats_score_max }}&{% endif %}{% if current_filters.date_from %}date_from={{ current_filters.date_from }}&{% endif %}{% if current_filters.date_to %}date_to={{ current_filters.date_to }}&{% endif %}sort_by={% if current_filters.sort_by == 'created_at' %}-created_at{% else %}created_at{% endif %}" class="hover: transition-colors">
+                                    Applied Date
+                                    {% if current_filters.sort_by == 'created_at' %}↑{% elif current_filters.sort_by == '-created_at' %}↓{% endif %}
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?{% if current_filters.applicant_name %}applicant_name={{ current_filters.applicant_name }}&{% endif %}{% if current_filters.status != 'all' %}status={{ current_filters.status }}&{% endif %}{% if current_filters.github_verified != 'all' %}github_verified={{ current_filters.github_verified }}&{% endif %}{% if current_filters.ats_score_min %}ats_score_min={{ current_filters.ats_score_min }}&{% endif %}{% if current_filters.ats_score_max %}ats_score_max={{ current_filters.ats_score_max }}&{% endif %}{% if current_filters.date_from %}date_from={{ current_filters.date_from }}&{% endif %}{% if current_filters.date_to %}date_to={{ current_filters.date_to }}&{% endif %}sort_by={% if current_filters.sort_by == 'ats_score__overall_score' %}-ats_score__overall_score{% else %}ats_score__overall_score{% endif %}" class="hover: transition-colors">
+                                    ATS Score
+                                    {% if current_filters.sort_by == 'ats_score__overall_score' %}↑{% elif current_filters.sort_by == '-ats_score__overall_score' %}↓{% endif %}
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?{% if current_filters.applicant_name %}applicant_name={{ current_filters.applicant_name }}&{% endif %}{% if current_filters.status != 'all' %}status={{ current_filters.status }}&{% endif %}{% if current_filters.github_verified != 'all' %}github_verified={{ current_filters.github_verified }}&{% endif %}{% if current_filters.ats_score_min %}ats_score_min={{ current_filters.ats_score_min }}&{% endif %}{% if current_filters.ats_score_max %}ats_score_max={{ current_filters.ats_score_max }}&{% endif %}{% if current_filters.date_from %}date_from={{ current_filters.date_from }}&{% endif %}{% if current_filters.date_to %}date_to={{ current_filters.date_to }}&{% endif %}sort_by={% if current_filters.sort_by == 'status' %}-status{% else %}status{% endif %}" class="hover: transition-colors">
+                                    Status
+                                    {% if current_filters.sort_by == 'status' %}↑{% elif current_filters.sort_by == '-status' %}↓{% endif %}
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a href="?{% if current_filters.applicant_name %}applicant_name={{ current_filters.applicant_name }}&{% endif %}{% if current_filters.status != 'all' %}status={{ current_filters.status }}&{% endif %}{% if current_filters.github_verified != 'all' %}github_verified={{ current_filters.github_verified }}&{% endif %}{% if current_filters.ats_score_min %}ats_score_min={{ current_filters.ats_score_min }}&{% endif %}{% if current_filters.ats_score_max %}ats_score_max={{ current_filters.ats_score_max }}&{% endif %}{% if current_filters.date_from %}date_from={{ current_filters.date_from }}&{% endif %}{% if current_filters.date_to %}date_to={{ current_filters.date_to }}&{% endif %}sort_by={% if current_filters.sort_by == '-is_github_skills_verified' %}-is_github_skills_verified{% elif current_filters.sort_by == 'is_github_skills_verified' %}is_github_skills_verified{% else %}-is_github_skills_verified{% endif %}" class="hover: transition-colors">
+                                    GitHub Skills
+                                    {% if current_filters.sort_by == 'is_github_skills_verified' %}↑{% elif current_filters.sort_by == '-is_github_skills_verified' %}↓{% endif %}
+                                </a>
+                            </th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume</th>
+                            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="bg-white/50 divide-y divide-gray-200">
+                    <tbody class="divide-y divide-white/10">
                         {% for application in applications %}
-                        <tr class="hover:bg-gray-50/80 transition-colors duration-200">
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">
-                                        {{ application.user.get_full_name|default:application.user.username }}
+                        <tr class="hover:bg-white/5 transition-colors duration-200">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                                        <span class="text-blue-400 font-medium text-sm">
+                                            {{ application.user.get_full_name|default:application.user.username|make_list|first|upper }}
+                                        </span>
                                     </div>
-                                    <div class="text-sm text-gray-500">{{ application.user.email }}</div>
+                                    <div>
+                                        <div class="text-sm font-medium">
+                                            {{ application.user.get_full_name|default:application.user.username }}
+                                        </div>
+                                        <div class="text-xs text-gray-400">{{ application.user.email }}</div>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ application.job.title }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-600">{{ application.job.company_name }}</div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ application.created_at|date:"M d, Y" }}
                             </td>
+                            
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {% if application.ats_analysis_status == 'completed' and application.ats_score %}
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-16 bg-gray-200 rounded-full h-2">
-                                            <div class="rounded-full h-2 {% if application.ats_score.overall_score >= 80 %}bg-green-500
-                                                                           {% elif application.ats_score.overall_score >= 60 %}bg-yellow-500
-                                                                           {% else %}bg-red-500{% endif %}" 
-                                                 style="width: {{ application.ats_score.overall_score }}%">
-                                            </div>
-                                        </div>
-                                        <span class="text-sm font-semibold {% if application.ats_score.overall_score >= 80 %}text-green-600
-                                                                           {% elif application.ats_score.overall_score >= 60 %}text-yellow-600
-                                                                           {% else %}text-red-600{% endif %}">
-                                            {{ application.ats_score.overall_score|floatformat:0 }}%
-                                        </span>
-                                        <a href="{% url 'score_detail' application.ats_score.id %}" 
-                                           class="text-blue-500 hover:text-blue-700" title="View Detailed Analysis">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                        </a>
-                                    </div>
-                                {% elif application.ats_analysis_status == 'processing' %}
-                                    <div class="flex items-center gap-2">
-                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                                        <span class="text-xs text-gray-500">Analyzing...</span>
-                                    </div>
-                                {% elif application.ats_analysis_status == 'failed' %}
-                                    <span class="text-xs text-red-500">Analysis failed</span>
-                                {% else %}
-                                    <span class="text-xs text-gray-400">Pending</span>
-                                {% endif %}
-                            </td>
+    {% if application.ats_analysis_status == 'completed' and application.ats_score %}
+        <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+                <div class="w-20 bg-gray-700 rounded-full h-2">
+                    <div class="rounded-full h-2 {% if application.ats_score.overall_score >= 80 %}bg-green-500
+                                                   {% elif application.ats_score.overall_score >= 60 %}bg-yellow-500
+                                                   {% else %}bg-red-500{% endif %}" 
+                         style="width: {{ application.ats_score.overall_score }}%">
+                    </div>
+                </div>
+                <span class="text-sm font-semibold">
+                    {{ application.ats_score.overall_score|floatformat:0 }}%
+                </span>
+                <a href="{% url 'score_detail' pk=application.ats_score.id %}" 
+                   class="text-blue-400 hover:text-blue-300 transition-colors"
+                   title="View Detailed ATS Report">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                </a>
+            </div>
+            
+            {% if application.ats_score.overall_score >= current_job.target_ats %}
+                <div class="flex items-center gap-1">
+                    <span class="text-xs font-medium text-green-400 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        ATS Passed
+                    </span>
+                    <span class="text-xs text-gray-500">(Target: {{ current_job.target_ats }}%)</span>
+                </div>
+            {% else %}
+                <div class="flex items-center gap-1">
+                    <span class="text-xs font-medium text-red-400 inline-flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Below Target
+                    </span>
+                    <span class="text-xs text-gray-500">(Target: {{ current_job.target_ats }}%)</span>
+                </div>
+            {% endif %}
+        </div>
+    {% elif application.ats_analysis_status == 'processing' %}
+        <div class="flex items-center gap-2">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+            <span class="text-xs text-gray-400">Analyzing...</span>
+        </div>
+    {% elif application.ats_analysis_status == 'failed' %}
+        <span class="text-xs text-red-400">Analysis failed</span>
+    {% else %}
+        <span class="text-xs text-gray-500">Pending</span>
+    {% endif %}
+</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    {% if application.status == 'applied' %}bg-green-100 text-green-800 border border-green-200
-                                    {% elif application.status == 'draft' %}bg-yellow-100 text-yellow-800 border border-yellow-200
-                                    {% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
+                                    {% if application.status == 'submitted' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                                    {% elif application.status == 'draft' %}bg-yellow-500/20 text-yellow-400 border border-yellow-500/30
+                                    {% elif application.status == 'shortlisted' %}bg-green-500/20 text-green-400 border border-green-500/30
+                                    {% elif application.status == 'reviewed' %}bg-cyan-500/20 text-cyan-400 border border-cyan-500/30
+                                    {% elif application.status == 'interviewed' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                                    {% elif application.status == 'offered' %}bg-indigo-500/20 text-indigo-400 border border-indigo-500/30
+                                    {% elif application.status == 'hired' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                                    {% elif application.status == 'rejected' %}bg-red-500/20 text-red-400 border border-red-500/30
+                                    {% else %}bg-gray-500/20 text-gray-400 border border-gray-500/30{% endif %}">
                                     {{ application.get_status_display }}
                                 </span>
-                            </td>
+                             </td>
+                            <td class="px-6 py-4">
+    <div class="flex flex-col items-start gap-2">
+        <div>
+            {% if application.is_github_skills_verified %}
+                <span class="px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Passed
+                </span>
+            {% else %}
+                <span class="px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    Failed
+                </span>
+            {% endif %}
+        </div>
+        <a href="{% url 'user_github_stats' application.user.id %}" 
+           target="_blank"
+           class="text-xs text-cyan-400 hover:text-cyan-300 inline-flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            </svg>
+            View Stats
+        </a>
+    </div>
+</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 {% if application.resume %}
-                                    <a href="{{ application.resume.file.url }}" target="_blank" class="text-blue-600 hover:text-blue-800">
-                                        View Resume
+                                    <a href="{{ application.resume.file.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 inline-flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        View
                                     </a>
                                 {% else %}
-                                    <span class="text-gray-400">No resume</span>
+                                    <span class="text-gray-500 text-xs">No resume</span>
                                 {% endif %}
+                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="flex items-center gap-2">
+                                    <button onclick="openStatusModal({{ application.id }}, '{{ application.status }}')" 
+                                       class="text-indigo-400 hover:text-indigo-300 transition-colors"
+                                       title="Update Status">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                    <button onclick="openNoteModal({{ application.id }})" 
+                                       class="text-green-400 hover:text-green-300 transition-colors"
+                                       title="Add Note">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
                             <td colspan="7" class="px-6 py-12 text-center">
                                 <div class="text-center">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No applications found</h3>
-                                    <p class="mt-1 text-sm text-gray-500">No applications have been submitted for this job yet.</p>
+                                    <h3 class="mt-2 text-sm font-medium">No applications found</h3>
+                                    <p class="mt-1 text-sm text-gray-400">No applications match your filters.</p>
                                 </div>
                             </td>
                         </tr>
@@ -163,24 +428,26 @@
 
             <!-- Pagination -->
             {% if is_paginated %}
-            <div class="bg-gray-50/80 px-4 py-3 border-t border-gray-200 sm:px-6">
-                <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-700">
+            <div class="bg-white/5 px-6 py-4 border-t border-white/10">
+                <div class="flex justify-between items-center flex-wrap gap-4">
+                    <div class="text-sm text-gray-400">
                         Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ paginator.count }} results
                     </div>
                     <div class="flex gap-2">
                         {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|slice:'-page' }}" 
+                               class="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/10 transition-colors">
                                 Previous
                             </a>
                         {% endif %}
                         
-                        <span class="px-3 py-1 text-gray-700">
+                        <span class="px-4 py-2">
                             Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
                         </span>
                         
                         {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|slice:'-page' }}" 
+                               class="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/10 transition-colors">
                                 Next
                             </a>
                         {% endif %}
@@ -189,7 +456,210 @@
             </div>
             {% endif %}
         </div>
+        
+        <!-- Back Button -->
+        <div class="mt-6">
+            <a href="{% url 'company_dashboard_default' %}" 
+               class="inline-flex items-center gap-2 text-gray-400 hover:transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
     </div>
 </section>
 
+<!-- Status Update Modal -->
+<div id="statusModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Update Application Status</h3>
+                <button onclick="closeStatusModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="statusForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+                    <select name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        {% for value, label in status_choices %}
+                            {% if value != 'all' %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all">
+                        Update Status
+                    </button>
+                    <button type="button" onclick="closeStatusModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Note Modal -->
+<div id="noteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Add Note</h3>
+                <button onclick="closeNoteModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="noteForm" method="POST" action="">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Note</label>
+                    <textarea name="note" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter your note here..."></textarea>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all">
+                        Add Note
+                    </button>
+                    <button type="button" onclick="closeNoteModal()" class="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openStatusModal(applicationId, currentStatus) {
+        const modal = document.getElementById('statusModal');
+        const form = document.getElementById('statusForm');
+        form.action = `/applications/${applicationId}/update-status/`;
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        modal.classList.add('items-center');
+    }
+    
+    function closeStatusModal() {
+        const modal = document.getElementById('statusModal');
+        modal.style.display = 'none';
+    }
+    
+    function openNoteModal(applicationId) {
+        const modal = document.getElementById('noteModal');
+        const form = document.getElementById('noteForm');
+        form.action = `/applications/${applicationId}/add-note/`;
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+        modal.classList.add('items-center');
+    }
+    
+    function closeNoteModal() {
+        const modal = document.getElementById('noteModal');
+        modal.style.display = 'none';
+    }
+    
+    window.onclick = function(event) {
+        const statusModal = document.getElementById('statusModal');
+        const noteModal = document.getElementById('noteModal');
+        if (event.target === statusModal) {
+            closeStatusModal();
+        }
+        if (event.target === noteModal) {
+            closeNoteModal();
+        }
+    }
+    
+    // Filter accordion toggle with smooth animation
+    const toggle = document.getElementById("filterToggle");
+    const panel = document.getElementById("filterPanel");
+    const filterIcon = document.getElementById("filterIcon");
+    const arrowIcon = document.getElementById("arrowIcon");
+
+    if (toggle && panel) {
+        const hasApplicantName = "{{ current_filters.applicant_name|default:'' }}" !== "";
+        const hasStatus = "{{ current_filters.status|default:'all' }}" !== "all";
+        const hasGithubVerified = "{{ current_filters.github_verified|default:'all' }}" !== "all";
+        const hasAtsScoreMin = "{{ current_filters.ats_score_min|default:'' }}" !== "";
+        const hasAtsScoreMax = "{{ current_filters.ats_score_max|default:'' }}" !== "";
+        const hasDateFrom = "{{ current_filters.date_from|default:'' }}" !== "";
+        const hasDateTo = "{{ current_filters.date_to|default:'' }}" !== "";
+        
+        const hasFilters = hasApplicantName || hasStatus || hasGithubVerified || hasAtsScoreMin || hasAtsScoreMax || hasDateFrom || hasDateTo;
+        
+        if (hasFilters) {
+            panel.classList.remove("hidden");
+            filterIcon?.classList.add("rotate-180");
+            arrowIcon?.classList.add("rotate-180");
+        } else {
+            panel.classList.add("hidden");
+        }
+        
+        toggle.addEventListener("click", () => {
+            if (panel.classList.contains("hidden")) {
+                panel.style.maxHeight = "0px";
+                panel.classList.remove("hidden");
+                panel.style.maxHeight = panel.scrollHeight + "px";
+                setTimeout(() => {
+                    panel.style.maxHeight = "none";
+                }, 300);
+            } else {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+                setTimeout(() => {
+                    panel.style.maxHeight = "0px";
+                }, 10);
+                setTimeout(() => {
+                    panel.classList.add("hidden");
+                    panel.style.maxHeight = "none";
+                }, 300);
+            }
+            
+            filterIcon?.classList.toggle("rotate-180");
+            arrowIcon?.classList.toggle("rotate-180");
+        });
+    }
+    
+    window.addEventListener('resize', function() {
+        if (!panel.classList.contains("hidden")) {
+            panel.style.maxHeight = "none";
+            setTimeout(() => {
+                panel.style.maxHeight = panel.scrollHeight + "px";
+            }, 10);
+        }
+    });
+</script>
+
+<style>
+    #filterPanel {
+        transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        overflow: hidden;
+        max-height: none;
+    }
+    
+    #filterPanel.hidden {
+        max-height: 0px !important;
+        opacity: 0;
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+    }
+    
+    .rotate-180 {
+        transform: rotate(180deg);
+    }
+    
+    #filterIcon, #arrowIcon {
+        transition: transform 0.3s ease-in-out;
+    }
+</style>
 {% endblock %}

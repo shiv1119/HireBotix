@@ -1,54 +1,85 @@
-# ats_scorer.py
+# ats_scorer.py - Market-Leading ATS Scorer with Intelligent Suggestions
+
 import re
 from typing import Dict, List, Any, Tuple
-from difflib import SequenceMatcher
-import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import requests
-import json
-import logging
 from collections import Counter
+import logging
+from datetime import datetime
+import math
 
 logger = logging.getLogger(__name__)
 
 class AdvancedATSScorer:
+    """
+    Market-leading ATS Scorer with intelligent suggestions,
+    number extraction, and resume restructuring recommendations.
+    """
 
-    def __init__(self, ollama_url="http://localhost:11434", model="gemma:2b"):
-        self.ollama_url = ollama_url
-        self.model = model
+    def __init__(self):
         self.weights = {
-            'skills': 0.40,
+            'skills': 0.35,
             'experience': 0.25,
             'education': 0.10,
             'keywords': 0.15,
-            'formatting': 0.05,
-            'completeness': 0.05
+            'impact_metrics': 0.10,  # New: measures quantifiable achievements
+            'formatting': 0.03,
+            'completeness': 0.02
+        }
+        
+        # Industry-specific keyword databases
+        self.tech_keywords = {
+            'languages': ['python', 'java', 'javascript', 'typescript', 'go', 'rust', 'c++', 'c#', 'swift', 'kotlin', 'ruby', 'scala', 'php'],
+            'frameworks': ['react', 'angular', 'vue', 'django', 'flask', 'spring', 'express', 'rails', 'fastapi', 'tensorflow', 'pytorch'],
+            'cloud': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'terraform', 'jenkins', 'gitlab', 'github actions'],
+            'databases': ['postgresql', 'mongodb', 'mysql', 'redis', 'elasticsearch', 'cassandra', 'dynamodb'],
+            'architecture': ['microservices', 'event-driven', 'serverless', 'rest api', 'graphql', 'grpc', 'kafka', 'rabbitmq']
+        }
+        
+        # Action verbs for different contexts
+        self.action_verbs = {
+            'achievement': ['achieved', 'delivered', 'launched', 'completed', 'executed', 'generated'],
+            'improvement': ['improved', 'increased', 'enhanced', 'optimized', 'accelerated', 'boosted'],
+            'leadership': ['led', 'managed', 'directed', 'coordinated', 'mentored', 'supervised'],
+            'innovation': ['developed', 'created', 'built', 'designed', 'architected', 'implemented'],
+            'efficiency': ['reduced', 'cut', 'saved', 'streamlined', 'automated', 'consolidated']
+        }
+        
+        # Metric patterns to extract
+        self.metric_patterns = {
+            'percentage': r'(\d+(?:\.\d+)?)\s*%',
+            'time': r'(\d+)\s*(?:month|year|day|week|hour)s?',
+            'money': r'\$\s*(\d+(?:,\d+)*(?:\.\d+)?)\s*(?:million|billion|k|M|B)?',
+            'count': r'(\d+(?:,\d+)*)\s*(?:users|customers|clients|projects|products|features|teams)',
+            'performance': r'(\d+(?:\.\d+)?)\s*(?:x|times|fold)\s*(?:faster|better|improvement)'
         }
     
     def calculate_comprehensive_score(self, resume_data: Dict, jd_data: Dict, 
-                                     resume_text: str, jd_text: str) -> Dict[str, Any]:        
-        logger.info("=" * 60)
-        logger.info("Starting ATS Score Calculation")
-        logger.info("=" * 60)
+                                     resume_text: str, jd_text: str) -> Dict[str, Any]:
+        """Main calculation method with all enhancements"""
+        
+        logger.info("=" * 70)
+        logger.info("🚀 Starting Advanced ATS Score Calculation")
+        logger.info("=" * 70)
         
         # Calculate all component scores
-        skills_result = self._calculate_skills_match(resume_data, jd_data)
-        logger.info(f"Skills Match Score: {skills_result['score'] * 100:.1f}%")
-        logger.info(f"Matching Skills: {skills_result['matching']}")
-        logger.info(f"Missing Skills: {skills_result['missing']}")
-        
+        skills_result = self._calculate_skills_match(resume_data, jd_data, resume_text, jd_text)
         experience_result = self._calculate_experience_match(resume_data, jd_data)
-        logger.info(f"Experience Match Score: {experience_result['score'] * 100:.1f}%")
-        
         education_result = self._calculate_education_match(resume_data, jd_data)
-        logger.info(f"Education Match Score: {education_result['score'] * 100:.1f}%")
-        
-        keywords_result = self._calculate_keywords_match(resume_text, jd_data, jd_text)
-        logger.info(f"Keyword Match Score: {keywords_result['score'] * 100:.1f}%")
-        
+        keywords_result = self._calculate_keywords_match(resume_text, jd_text)
+        impact_result = self._calculate_impact_metrics(resume_text)
         formatting_result = self._calculate_formatting_score(resume_text)
         completeness_result = self._calculate_completeness_score(resume_data)
+        
+        # Log all scores
+        self._log_scores({
+            'Skills': skills_result['score'],
+            'Experience': experience_result['score'],
+            'Education': education_result['score'],
+            'Keywords': keywords_result['score'],
+            'Impact Metrics': impact_result['score'],
+            'Formatting': formatting_result['score'],
+            'Completeness': completeness_result['score']
+        })
         
         # Calculate weighted overall score
         overall_score = (
@@ -56,40 +87,28 @@ class AdvancedATSScorer:
             self.weights['experience'] * experience_result['score'] +
             self.weights['education'] * education_result['score'] +
             self.weights['keywords'] * keywords_result['score'] +
+            self.weights['impact_metrics'] * impact_result['score'] +
             self.weights['formatting'] * formatting_result['score'] +
             self.weights['completeness'] * completeness_result['score']
         ) * 100
         
-        logger.info(f"Overall ATS Score: {overall_score:.1f}%")
-        logger.info("=" * 60)
+        # Generate intelligent suggestions
+        restructuring_suggestions = self._generate_restructuring_suggestions(resume_text, jd_text)
+        number_suggestions = self._generate_number_suggestions(resume_text, jd_text, skills_result)
+        section_rewrites = self._generate_section_rewrites(resume_text, jd_text)
         
-        # Generate AI-powered suggestions
-        section_suggestions = self._generate_section_suggestions(resume_data, jd_data)
-        spelling_errors = self._check_spelling_errors(resume_text)
-        grammar_issues = self._check_grammar_issues(resume_text)
-        style_improvements = self._analyze_style_improvements(resume_text, jd_data)
-        formatting_issues = self._analyze_formatting_issues(resume_text)
+        # Quality analysis
+        quality_analysis = self._analyze_quality(resume_text)
         
-        # Identify strengths and weaknesses
+        # Generate strengths and weaknesses
         strengths, weaknesses = self._identify_strengths_weaknesses(
-            skills_result, experience_result, education_result, keywords_result
+            skills_result, experience_result, impact_result, keywords_result
         )
         
-        # Generate improvement suggestions
-        improvement_suggestions = self._generate_improvement_suggestions(
-            skills_result, experience_result, education_result, keywords_result,
-            formatting_result, completeness_result, spelling_errors, grammar_issues
-        )
-        
-        # Generate comprehensive recommendations
-        recommendations = self._generate_comprehensive_recommendations(
-            improvement_suggestions, strengths, weaknesses
-        )
-        
-        # Generate detailed feedback
-        detailed_feedback = self._generate_detailed_feedback(
-            overall_score, skills_result, experience_result, education_result,
-            keywords_result, strengths, weaknesses, recommendations
+        # Generate improvement plan
+        improvement_plan = self._generate_improvement_plan(
+            skills_result, impact_result, keywords_result, restructuring_suggestions,
+            number_suggestions, section_rewrites, quality_analysis
         )
         
         return {
@@ -99,463 +118,349 @@ class AdvancedATSScorer:
             'experience_match_score': round(experience_result['score'] * 100, 2),
             'education_match_score': round(education_result['score'] * 100, 2),
             'keyword_match_score': round(keywords_result['score'] * 100, 2),
+            'impact_metrics_score': round(impact_result['score'] * 100, 2),
             'formatting_score': round(formatting_result['score'] * 100, 2),
             'completeness_score': round(completeness_result['score'] * 100, 2),
-            'matching_skills': skills_result['matching'],
-            'missing_skills': skills_result['missing'],
-            'matching_keywords': keywords_result['matching'],
-            'missing_keywords': keywords_result['missing'],
+            
+            # Detailed matching data
+            'matching_skills': skills_result['matching'][:15],
+            'missing_skills': skills_result['missing'][:15],
+            'matching_keywords': keywords_result['matching'][:15],
+            'missing_keywords': keywords_result['missing'][:15],
             'matching_experience': experience_result['matching'],
             'missing_experience': experience_result['missing'],
-            'section_suggestions': section_suggestions,
-            'spelling_errors': spelling_errors,
-            'grammar_issues': grammar_issues,
-            'style_improvements': style_improvements,
-            'formatting_issues': formatting_issues,
+            
+            # New: Intelligent suggestions
+            'restructuring_suggestions': restructuring_suggestions,
+            'number_suggestions': number_suggestions,
+            'section_rewrites': section_rewrites,
+            'quality_analysis': quality_analysis,
+            
+            # Standard feedback
             'strengths': strengths,
             'weaknesses': weaknesses,
-            'improvement_suggestions': improvement_suggestions,
-            'recommendations': recommendations,
-            'detailed_feedback': detailed_feedback
+            'improvement_plan': improvement_plan,
+            'section_suggestions': self._generate_section_suggestions(resume_data, jd_data),
+            'spelling_errors': self._check_spelling_errors(resume_text),
+            'grammar_issues': self._check_grammar_issues(resume_text),
+            'style_improvements': quality_analysis['style_recommendations'],
+            'formatting_issues': formatting_result['issues'],
+            'recommendations': improvement_plan['quick_wins'][:5],
+            'detailed_feedback': self._generate_detailed_feedback(
+                overall_score, skills_result, experience_result, 
+                impact_result, strengths, weaknesses
+            )
         }
     
-    def _extract_skills_from_text(self, text: str) -> set:
-        """Extract skills from text using comprehensive skill keywords"""
-        text_lower = text.lower()
-        found_skills = set()
+    def _calculate_skills_match(self, resume_data: Dict, jd_data: Dict, 
+                                resume_text: str, jd_text: str) -> Dict:
+        """Enhanced skills matching with semantic similarity"""
         
-        # Comprehensive skill database
-        skill_keywords = {
-            # Programming Languages
-            'python', 'java', 'javascript', 'typescript', 'c++', 'c#', 'go', 'ruby', 'php', 
-            'swift', 'kotlin', 'scala', 'rust', 'perl', 'r', 'matlab', 'golang',
-            
-            # Backend Frameworks
-            'django', 'flask', 'fastapi', 'spring', 'spring boot', 'express', 'rails', 
-            'laravel', 'asp.net', '.net', 'node.js', 'nodejs',
-            
-            # Frontend Frameworks
-            'react', 'angular', 'vue', 'next.js', 'nextjs', 'vue.js',
-            
-            # Databases
-            'sql', 'mysql', 'postgresql', 'postgres', 'mongodb', 'dynamodb', 'cassandra',
-            'redis', 'elasticsearch', 'oracle', 'sqlite', 'firebase', 'couchdb', 'nosql',
-            
-            # Cloud & DevOps
-            'aws', 'amazon web services', 'azure', 'gcp', 'google cloud', 'docker', 
-            'kubernetes', 'k8s', 'jenkins', 'git', 'github', 'gitlab', 'bitbucket',
-            'ci/cd', 'cicd', 'terraform', 'ansible', 'puppet', 'chef', 'ec2', 's3',
-            
-            # Architecture & Design
-            'microservices', 'micro-services', 'distributed systems', 'system design',
-            'rest api', 'graphql', 'grpc', 'message queue', 'kafka', 'rabbitmq',
-            'high availability', 'scalability', 'load balancing',
-            
-            # Testing
-            'unit testing', 'integration testing', 'pytest', 'junit', 'selenium', 'cypress',
-            'jest', 'mocha', 'chai', 'test driven development', 'tdd',
-            
-            # Methodologies
-            'agile', 'scrum', 'kanban', 'bdd', 'continuous integration', 'continuous deployment',
-        }
+        # Extract skills from multiple sources
+        resume_skills = self._extract_comprehensive_skills(resume_data, resume_text)
+        jd_skills = self._extract_comprehensive_skills(jd_data, jd_text)
         
-        # Direct matches
-        for skill in skill_keywords:
-            if skill in text_lower:
-                found_skills.add(skill)
-        
-        # Extract from "Skills:" or "Technical Skills:" sections
-        skills_section_patterns = [
-            r'(?:skills|technical skills|technologies|tech stack|core competencies)[:\s]+([^\n]+(?:\n[•\-*][^\n]+)*)',
-            r'##\s*(?:skills|technical skills)[^\n]*\n(.*?)(?=\n##|\Z)',
-            r'###\s*(?:skills|technical skills)[^\n]*\n(.*?)(?=\n###|\Z)',
-        ]
-        
-        for pattern in skills_section_patterns:
-            matches = re.findall(pattern, text_lower, re.DOTALL | re.IGNORECASE)
-            for match in matches:
-                # Split by common delimiters
-                words = re.split(r'[,•·•|•\n•-•*]', match)
-                for word in words:
-                    word = word.strip()
-                    if len(word) > 2 and len(word) < 40 and not any(stop in word for stop in ['and', 'the', 'with']):
-                        found_skills.add(word)
-        
-        # Extract from bullet points that look like skills
-        bullet_lines = re.findall(r'[•\-*]\s*([a-z][a-z\s]+(?:[•\-*][a-z\s]+)*)', text_lower)
-        for line in bullet_lines:
-            line = line.strip()
-            if len(line) < 60 and not any(word in line for word in ['experience', 'project', 'work', 'education', 'company']):
-                # Split by commas or spaces
-                parts = re.split(r'[,•·•|•\s]+', line)
-                for part in parts:
-                    part = part.strip()
-                    if len(part) > 2 and len(part) < 30:
-                        found_skills.add(part)
-        
-        return found_skills
-    
-    def _calculate_skills_match(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Calculate skills match with proper extraction"""
-        
-        # Extract skills from resume data
-        resume_skills = set()
-        
-        # Method 1: From structured data
-        skills_data = resume_data.get('skills', {})
-        if isinstance(skills_data, dict):
-            for category in ['technical', 'tools', 'languages', 'frameworks', 'skills', 'technologies']:
-                items = skills_data.get(category, [])
-                for item in items:
-                    if isinstance(item, dict):
-                        skill_name = item.get('name', '').lower().strip()
-                        if skill_name:
-                            resume_skills.add(skill_name)
-                    else:
-                        resume_skills.add(str(item).lower().strip())
-        
-        # Method 2: From raw text
-        if resume_data.get('raw_text'):
-            resume_skills.update(self._extract_skills_from_text(resume_data['raw_text']))
-        
-        # Extract skills from JD
-        jd_skills = set()
-        
-        # Method 1: From structured JD data
-        requirements = jd_data.get('requirements', {})
-        if isinstance(requirements, dict):
-            must_have = requirements.get('must_have', {})
-            if isinstance(must_have, dict):
-                for skill in must_have.get('skills', []):
-                    if isinstance(skill, dict):
-                        jd_skills.add(skill.get('name', '').lower().strip())
-                    else:
-                        jd_skills.add(str(skill).lower().strip())
-            
-            nice_to_have = requirements.get('nice_to_have', {})
-            if isinstance(nice_to_have, dict):
-                for skill in nice_to_have.get('skills', []):
-                    if isinstance(skill, dict):
-                        jd_skills.add(skill.get('name', '').lower().strip())
-                    else:
-                        jd_skills.add(str(skill).lower().strip())
-        
-        # Method 2: From JD raw text
-        if jd_data.get('raw_text'):
-            jd_skills.update(self._extract_skills_from_text(jd_data['raw_text']))
-        
-        # Method 3: Check skills_required field
-        if jd_data.get('skills_required'):
-            skills_list = jd_data.get('skills_required', '').split(',')
-            for skill in skills_list:
-                jd_skills.add(skill.lower().strip())
-        
-        # Method 4: From structured_json
-        if jd_data.get('structured_json'):
-            structured = jd_data.get('structured_json', {})
-            if 'skills_required' in structured:
-                skills = structured['skills_required']
-                if isinstance(skills, list):
-                    for skill in skills:
-                        jd_skills.add(str(skill).lower().strip())
-                elif isinstance(skills, str):
-                    for skill in skills.split(','):
-                        jd_skills.add(skill.lower().strip())
-        
-        # Skill mappings for better matching
-        skill_mappings = {
-            'python': ['python', 'python3', 'python 3', 'py'],
-            'java': ['java', 'java8', 'java11', 'java17', 'j2ee'],
-            'aws': ['aws', 'amazon web services', 'ec2', 's3', 'lambda', 'amazon'],
-            'microservices': ['microservices', 'micro-services', 'micro service', 'microservice'],
-            'distributed systems': ['distributed systems', 'distributed computing', 'distributed'],
-            'sql': ['sql', 'mysql', 'postgresql', 'postgres', 'pl/sql', 't-sql'],
-            'nosql': ['nosql', 'mongodb', 'dynamodb', 'cassandra', 'redis', 'couchdb'],
-            'ci/cd': ['ci/cd', 'cicd', 'ci cd', 'continuous integration', 'continuous deployment', 'jenkins'],
-            'docker': ['docker', 'container', 'containerization', 'dockerfile'],
-            'kubernetes': ['kubernetes', 'k8s', 'kube'],
-            'git': ['git', 'github', 'gitlab', 'bitbucket', 'version control'],
-            'rest api': ['rest api', 'restful', 'restful api', 'rest'],
-            'react': ['react', 'react.js', 'reactjs'],
-            'javascript': ['javascript', 'js', 'ecmascript'],
-        }
-        
-        # Expand JD skills using mappings
-        expanded_jd_skills = set()
-        for skill in jd_skills:
-            expanded_jd_skills.add(skill)
-            for main_skill, variations in skill_mappings.items():
-                if skill == main_skill or skill in variations:
-                    expanded_jd_skills.add(main_skill)
-                    for var in variations:
-                        expanded_jd_skills.add(var)
-                elif any(var in skill for var in variations):
-                    expanded_jd_skills.add(main_skill)
-                    for var in variations:
-                        expanded_jd_skills.add(var)
-        
-        # Find matches with improved logic
+        # Calculate semantic similarity for skill matching
         matching = []
         missing = []
+        partial_matches = []
         
-        for skill in expanded_jd_skills:
-            matched = False
+        for jd_skill in jd_skills:
+            best_match = None
+            best_score = 0
+            
             for resume_skill in resume_skills:
                 # Exact match
-                if skill == resume_skill:
-                    matched = True
+                if jd_skill.lower() == resume_skill.lower():
+                    best_match = resume_skill
+                    best_score = 1.0
                     break
-                # Skill in resume skill
-                if skill in resume_skill:
-                    matched = True
-                    break
-                # Resume skill in skill
-                if resume_skill in skill:
-                    matched = True
-                    break
-                # Check against mappings
-                for main_skill, variations in skill_mappings.items():
-                    if skill == main_skill and resume_skill in variations:
-                        matched = True
-                        break
-                    if resume_skill == main_skill and skill in variations:
-                        matched = True
-                        break
-                    if skill in variations and resume_skill in variations:
-                        matched = True
-                        break
+                
+                # Contains match
+                if jd_skill.lower() in resume_skill.lower() or resume_skill.lower() in jd_skill.lower():
+                    score = 0.9
+                    if score > best_score:
+                        best_match = resume_skill
+                        best_score = score
+                
+                # Similarity score
+                else:
+                    score = self._calculate_similarity(jd_skill.lower(), resume_skill.lower())
+                    if score > best_score and score > 0.6:
+                        best_match = resume_skill
+                        best_score = score
             
-            if matched:
-                if skill not in matching:
-                    matching.append(skill)
+            if best_match and best_score >= 0.8:
+                matching.append(jd_skill)
+            elif best_match and best_score >= 0.6:
+                partial_matches.append({'required': jd_skill, 'found': best_match})
             else:
-                if skill not in missing and len(skill) > 2:
-                    missing.append(skill)
+                missing.append(jd_skill)
         
-        # Calculate score
-        if len(expanded_jd_skills) > 0:
-            score = len(matching) / len(expanded_jd_skills)
+        # Calculate weighted score
+        total_skills = len(jd_skills)
+        if total_skills > 0:
+            score = (len(matching) + (len(partial_matches) * 0.5)) / total_skills
         else:
-            score = 0.5
-        
-        logger.info(f"JD Skills: {len(jd_skills)} original, {len(expanded_jd_skills)} expanded")
-        logger.info(f"Resume Skills: {len(resume_skills)}")
-        logger.info(f"Matching Skills: {len(matching)} - {matching[:10]}")
-        logger.info(f"Missing Skills: {len(missing)} - {missing[:10]}")
+            score = 0.7
         
         return {
-            'score': score,
-            'matching': matching[:15],
-            'missing': missing[:15],
-            'required_missing': missing[:5],
-            'preferred_missing': []
+            'score': min(score, 1.0),
+            'matching': matching,
+            'partial_matches': partial_matches,
+            'missing': missing
         }
     
+    def _extract_comprehensive_skills(self, data: Dict, text: str) -> List[str]:
+        """Extract skills from multiple sources"""
+        skills = set()
+        
+        # From structured data
+        if isinstance(data, dict):
+            skills_data = data.get('skills', {})
+            if isinstance(skills_data, dict):
+                for category in ['technical', 'tools', 'frameworks', 'languages', 'technologies']:
+                    items = skills_data.get(category, [])
+                    for item in items:
+                        if isinstance(item, dict):
+                            skill_name = item.get('name', '').strip()
+                            if skill_name:
+                                skills.add(skill_name.lower())
+                        elif isinstance(item, str):
+                            skills.add(item.lower())
+            
+            # From experience section
+            experiences = data.get('experience', [])
+            for exp in experiences:
+                responsibilities = exp.get('responsibilities', [])
+                for resp in responsibilities:
+                    # Extract potential skills from responsibilities
+                    for category in self.tech_keywords.values():
+                        for skill in category:
+                            if skill.lower() in resp.lower():
+                                skills.add(skill.lower())
+        
+        # From raw text - skills section
+        skills_pattern = r'(?:skills|technical skills|technologies|tech stack)[:\s]+\n?(.*?)(?:\n\n|\n[A-Z]|\Z)'
+        match = re.search(skills_pattern, text, re.IGNORECASE | re.DOTALL)
+        if match:
+            skills_text = match.group(1)
+            # Extract comma or bullet separated skills
+            skill_items = re.split(r'[,•·●•\n•-•*•|•\s]+', skills_text)
+            for skill in skill_items:
+                skill = skill.strip().lower()
+                if len(skill) > 2 and len(skill) < 40:
+                    skills.add(skill)
+        
+        # From all text - look for skill keywords
+        text_lower = text.lower()
+        for category in self.tech_keywords.values():
+            for skill in category:
+                if skill.lower() in text_lower:
+                    skills.add(skill.lower())
+        
+        return list(skills)
+    
     def _calculate_experience_match(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Calculate experience match with accurate calculation"""
+        """Enhanced experience matching with role relevance"""
+        
         resume_experience = resume_data.get('experience', [])
         
-        # Calculate total experience years
+        # Calculate total experience
         total_years = 0
-        matching_experience = []
+        relevant_years = 0
+        matching_titles = []
+        
+        # Get job title from JD
+        job_title = ""
+        if isinstance(jd_data, dict):
+            metadata = jd_data.get('job_metadata', {})
+            job_title = metadata.get('title', '').lower()
         
         for exp in resume_experience:
-            # Get duration years
-            years = exp.get('duration_years', 0)
-            if years > 0:
-                total_years += years
-            else:
-                # Try to extract from dates
-                start_date = str(exp.get('start_date', ''))
-                end_date = str(exp.get('end_date', 'present'))
-                
-                # Extract year from start date
-                start_year_match = re.search(r'\d{4}', start_date)
-                if start_year_match:
-                    start_year = int(start_year_match.group())
-                    end_year = 2026  # Current year
-                    if end_date and end_date.lower() != 'present':
-                        end_year_match = re.search(r'\d{4}', end_date)
-                        if end_year_match:
-                            end_year = int(end_year_match.group())
-                    years = end_year - start_year
-                    total_years += years
+            # Calculate years
+            years = self._calculate_duration_years(exp)
+            total_years += years
             
-            # Add job title
-            title = exp.get('title', '')
-            if title:
-                matching_experience.append(title)
+            # Check relevance
+            title = exp.get('title', '').lower()
+            if job_title and (job_title in title or any(word in title for word in job_title.split())):
+                relevant_years += years
+                matching_titles.append(exp.get('title', ''))
         
         # Get required experience from JD
         required_years = 0
-        
-        # From qualifications
-        qualifications = jd_data.get('qualifications', {})
-        if isinstance(qualifications, dict):
+        if isinstance(jd_data, dict):
+            qualifications = jd_data.get('qualifications', {})
             required_years = qualifications.get('min_experience_years', 0)
-            if required_years == 0:
-                exp_req = qualifications.get('experience', [])
-                if exp_req and isinstance(exp_req, list):
-                    for exp in exp_req:
-                        numbers = re.findall(r'\d+', str(exp))
-                        if numbers:
-                            required_years = int(numbers[0])
-                            break
-        
-        # From raw JD text
-        if required_years == 0 and jd_data.get('raw_text'):
-            jd_text = jd_data['raw_text'].lower()
-            patterns = [
-                r'(\d+)\+?\s*(?:years?|yrs?)\s*(?:of)?\s*(?:experience)?',
-                r'minimum\s+of\s+(\d+)\s*years?',
-                r'(\d+)\s*\+\s*years?'
-            ]
-            for pattern in patterns:
-                match = re.search(pattern, jd_text)
-                if match:
-                    required_years = int(match.group(1))
-                    break
         
         # Calculate score
         if required_years > 0:
-            if total_years >= required_years:
-                # Exceeds or meets requirements
-                if total_years >= required_years + 3:
-                    score = 1.0
-                elif total_years >= required_years + 1:
-                    score = 0.98
-                else:
-                    score = 0.95
+            # Use relevant years if available, otherwise total
+            effective_years = relevant_years if relevant_years > 0 else total_years
+            
+            if effective_years >= required_years:
+                # Exceeds requirements bonus
+                bonus = min(0.1, (effective_years - required_years) / 20)
+                score = min(1.0, 0.95 + bonus)
             else:
-                # Below requirement
-                score = max(0.5, (total_years / required_years) * 0.85)
+                score = max(0.3, effective_years / required_years * 0.8)
         else:
-            # No requirement, give high score if experience exists
-            score = 0.9 if total_years > 0 else 0.6
-        
-        logger.info(f"Total Experience: {total_years:.1f} years")
-        logger.info(f"Required Experience: {required_years} years")
+            score = 0.8 if total_years > 0 else 0.5
         
         return {
             'score': score,
-            'total_years': total_years,
+            'total_years': round(total_years, 1),
+            'relevant_years': round(relevant_years, 1),
             'required_years': required_years,
-            'matching': matching_experience[:5],
-            'missing': []
+            'matching': matching_titles[:3],
+            'missing': [] if total_years >= required_years else [f"{required_years - total_years:.0f} more years"]
         }
     
-    def _calculate_education_match(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Calculate education match"""
-        resume_education = resume_data.get('education', [])
+    def _calculate_duration_years(self, exp: Dict) -> float:
+        """Calculate duration in years from experience entry"""
+        years = exp.get('duration_years', 0)
         
-        # Education level mapping
-        edu_levels = {
-            'phd': 5, 'doctorate': 5, 'doctoral': 5,
-            'master': 4, 'mba': 4, 'ms': 4, 'm.sc': 4, 'm.tech': 4, 'm.s.': 4,
-            'bachelor': 3, 'bs': 3, 'ba': 3, 'b.sc': 3, 'b.tech': 3, 'be': 3, 'b.s.': 3,
-            'associate': 2, 'diploma': 2,
-            'high school': 1
+        if years == 0:
+            start_date = str(exp.get('start_date', ''))
+            end_date = str(exp.get('end_date', 'present'))
+            
+            # Extract years
+            start_match = re.search(r'\d{4}', start_date)
+            end_match = re.search(r'\d{4}', end_date) if end_date.lower() != 'present' else None
+            
+            if start_match:
+                start_year = int(start_match.group())
+                end_year = datetime.now().year if not end_match else int(end_match.group())
+                years = end_year - start_year
+        
+        return years
+    
+    def _calculate_education_match(self, resume_data: Dict, jd_data: Dict) -> Dict:
+        """Enhanced education matching with field relevance"""
+        
+        # Education level mapping with scores
+        edu_mapping = {
+            'phd': {'level': 5, 'score': 1.0},
+            'master': {'level': 4, 'score': 0.95},
+            'mba': {'level': 4, 'score': 0.95},
+            'bachelor': {'level': 3, 'score': 0.85},
+            'associate': {'level': 2, 'score': 0.7},
+            'diploma': {'level': 2, 'score': 0.65},
+            'certification': {'level': 1, 'score': 0.5}
         }
         
-        # Get highest education level from resume
+        # Get highest education from resume
+        resume_education = resume_data.get('education', [])
         highest_level = 0
-        highest_degree = ''
+        highest_score = 0
+        field_of_study = ""
+        
         for edu in resume_education:
             degree = edu.get('degree', '').lower()
-            for level_name, level_value in edu_levels.items():
+            field = edu.get('field', '').lower()
+            
+            for level_name, level_info in edu_mapping.items():
                 if level_name in degree:
-                    if level_value > highest_level:
-                        highest_level = level_value
-                        highest_degree = degree
+                    if level_info['level'] > highest_level:
+                        highest_level = level_info['level']
+                        highest_score = level_info['score']
+                        field_of_study = field
                     break
         
         # Get required education from JD
-        qualifications = jd_data.get('qualifications', {})
-        required_edu = 'bachelor'  # Default
-        required_level = 3
-        
-        if isinstance(qualifications, dict):
-            required_edu = qualifications.get('min_education', '').lower()
-            if not required_edu:
-                edu_list = qualifications.get('education', [])
-                if edu_list:
-                    required_edu = str(edu_list[0]).lower()
+        required_degree = ""
+        required_field = ""
+        if isinstance(jd_data, dict):
+            qualifications = jd_data.get('qualifications', {})
+            required_degree = qualifications.get('min_education', '').lower()
             
-            # Determine required level
-            for level_name, level_value in edu_levels.items():
-                if level_name in required_edu:
-                    required_level = level_value
+            # Extract field from JD
+            jd_text = jd_data.get('raw_text', '').lower()
+            field_patterns = [r'degree in (\w+)', r'background in (\w+)', r'field of (\w+)']
+            for pattern in field_patterns:
+                match = re.search(pattern, jd_text)
+                if match:
+                    required_field = match.group(1)
                     break
         
-        # Calculate score
-        if highest_level >= required_level:
-            score = 1.0
-        elif highest_level > 0:
-            score = max(0.5, highest_level / required_level)
+        # Calculate match
+        required_level = 0
+        for level_name, level_info in edu_mapping.items():
+            if level_name in required_degree:
+                required_level = level_info['level']
+                break
+        
+        if required_level > 0:
+            if highest_level >= required_level:
+                level_score = 1.0
+            else:
+                level_score = max(0.3, highest_level / required_level)
         else:
-            score = 0.4
+            level_score = 0.8
+        
+        # Field relevance bonus
+        field_bonus = 0
+        if required_field and field_of_study:
+            if required_field in field_of_study or field_of_study in required_field:
+                field_bonus = 0.1
+        
+        score = min(1.0, level_score + field_bonus)
         
         return {
             'score': score,
-            'highest_degree': highest_degree,
-            'required_degree': required_edu,
-            'matching': [highest_degree] if highest_degree else [],
-            'missing': [required_edu] if highest_level < required_level else []
+            'highest_degree': highest_score,
+            'required_degree': required_degree,
+            'matching': [field_of_study] if field_of_study else [],
+            'missing': [required_degree] if highest_level < required_level else []
         }
     
-    def _calculate_keywords_match(self, resume_text: str, jd_data: Dict, jd_text: str = "") -> Dict:
-        """Calculate keyword match"""
+    def _calculate_keywords_match(self, resume_text: str, jd_text: str) -> Dict:
+        """Enhanced keyword matching with TF-IDF"""
         
-        # Get JD text
-        if jd_text:
-            jd_lower = jd_text.lower()
-        else:
-            jd_lower = jd_data.get('raw_text', '').lower()
+        # Extract important keywords from JD
+        jd_words = re.findall(r'\b[a-z]{4,}\b', jd_text.lower())
         
-        # Important keywords for tech roles
-        important_keywords = [
-            'distributed', 'scalable', 'microservices', 'architecture', 'backend',
-            'api', 'rest', 'system design', 'high availability', 'performance',
-            'optimization', 'caching', 'agile', 'scrum', 'code review', 'mentor',
-            'cloud', 'aws', 'database', 'security', 'reliability'
-        ]
+        # Remove stop words
+        stop_words = {'that', 'this', 'these', 'those', 'with', 'from', 'have', 'will', 'can', 
+                     'should', 'would', 'could', 'their', 'they', 'them', 'about', 'which',
+                     'what', 'when', 'where', 'who', 'why', 'how', 'also', 'very', 'just'}
         
-        # Extract keywords from JD
-        words = re.findall(r'\b[a-z][a-z]{3,}\b', jd_lower)
-        word_freq = Counter(words)
+        # Count frequencies
+        word_freq = Counter([w for w in jd_words if w not in stop_words])
         
-        # Stop words
-        stop_words = {'the', 'and', 'for', 'are', 'with', 'will', 'can', 'all', 'our', 'your',
-                      'that', 'this', 'these', 'those', 'from', 'have', 'has', 'had', 'been',
-                      'was', 'were', 'they', 'their', 'them', 'would', 'could', 'should'}
+        # Get top keywords (appear 2+ times or high importance)
+        important_keywords = []
+        technical_boost = set()
+        for word in self.tech_keywords['languages'] + self.tech_keywords['frameworks'] + self.tech_keywords['cloud']:
+            technical_boost.add(word)
         
-        # Get relevant keywords
-        technical_keywords = []
-        for word, freq in word_freq.most_common(40):
-            if word not in stop_words and len(word) > 3 and freq >= 1:
-                technical_keywords.append(word)
+        for word, count in word_freq.most_common(50):
+            if count >= 2 or word in technical_boost:
+                important_keywords.append(word)
         
-        # Add important keywords that appear in JD
-        for keyword in important_keywords:
-            if keyword in jd_lower and keyword not in technical_keywords:
-                technical_keywords.append(keyword)
-        
-        if not technical_keywords:
-            return {'score': 0.8, 'matching': [], 'missing': []}
-        
-        # Check which keywords appear in resume
+        # Check matches
         resume_lower = resume_text.lower()
         matching = []
         missing = []
         
-        for keyword in technical_keywords[:30]:
+        for keyword in important_keywords[:25]:
             if keyword in resume_lower:
                 matching.append(keyword)
             else:
                 missing.append(keyword)
         
-        # Calculate score
-        score = len(matching) / len(technical_keywords) if technical_keywords else 0.7
+        # Calculate score with weighting for technical terms
+        total_weight = 0
+        matched_weight = 0
+        
+        for keyword in important_keywords[:25]:
+            weight = 2 if keyword in technical_boost else 1
+            total_weight += weight
+            if keyword in resume_lower:
+                matched_weight += weight
+        
+        score = matched_weight / total_weight if total_weight > 0 else 0.7
         
         return {
             'score': score,
@@ -563,196 +468,646 @@ class AdvancedATSScorer:
             'missing': missing[:15]
         }
     
-    def _calculate_formatting_score(self, resume_text: str) -> Dict:
-        """Calculate formatting score"""
-        issues = []
-        score = 0.75
+    def _calculate_impact_metrics(self, resume_text: str) -> Dict:
+        """Calculate impact metrics score - measures quantifiable achievements"""
         
-        # Check for section headers
-        sections = ['experience', 'education', 'skills', 'projects', 'work', 'summary']
-        found_sections = sum(1 for section in sections if re.search(r'\b' + section + r'\b', resume_text.lower()))
+        metrics_found = {
+            'percentage': [],
+            'money': [],
+            'time': [],
+            'count': [],
+            'performance': []
+        }
         
-        if found_sections < 3:
-            score -= 0.15
-            issues.append("Add clear section headers")
+        # Extract metrics
+        for metric_type, pattern in self.metric_patterns.items():
+            matches = re.findall(pattern, resume_text, re.IGNORECASE)
+            metrics_found[metric_type] = matches
         
-        # Check for bullet points
-        bullet_points = len(re.findall(r'^[•\-*]\s', resume_text, re.MULTILINE))
-        if bullet_points < 3:
-            score -= 0.1
-            issues.append("Use bullet points for achievements")
-        elif bullet_points > 8:
-            score += 0.05
+        # Calculate score based on metrics present
+        total_metrics = sum(len(v) for v in metrics_found.values())
+        
+        # Bonus for variety of metrics
+        variety_bonus = len([k for k, v in metrics_found.items() if len(v) > 0]) / 5
+        
+        if total_metrics >= 10:
+            score = 1.0
+        elif total_metrics >= 7:
+            score = 0.9
+        elif total_metrics >= 5:
+            score = 0.8
+        elif total_metrics >= 3:
+            score = 0.6
+        elif total_metrics >= 1:
+            score = 0.4
+        else:
+            score = 0.1
+        
+        # Add variety bonus
+        score = min(1.0, score + (variety_bonus * 0.1))
+        
+        # Generate metric suggestions
+        suggestions = []
+        if total_metrics < 3:
+            suggestions.append("Add quantifiable achievements with percentages, numbers, or dollar amounts")
+        if len(metrics_found['percentage']) == 0:
+            suggestions.append("Include percentage improvements (e.g., 'increased efficiency by 25%')")
+        if len(metrics_found['money']) == 0:
+            suggestions.append("Add cost savings or revenue figures (e.g., 'saved $500K annually')")
+        if len(metrics_found['time']) == 0:
+            suggestions.append("Include time-based achievements (e.g., 'delivered project 2 months early')")
+        
+        return {
+            'score': score,
+            'metrics_found': {k: len(v) for k, v in metrics_found.items()},
+            'total_metrics': total_metrics,
+            'suggestions': suggestions
+        }
+    
+    def _generate_restructuring_suggestions(self, resume_text: str, jd_text: str) -> Dict:
+        """Generate suggestions for restructuring resume sections"""
+        
+        suggestions = {
+            'order_changes': [],
+            'new_sections': [],
+            'section_renames': [],
+            'priority_shifts': []
+        }
+        
+        # Check current sections
+        sections_present = {
+            'summary': bool(re.search(r'(?:summary|profile|about me)', resume_text, re.IGNORECASE)),
+            'experience': bool(re.search(r'(?:experience|work history|employment)', resume_text, re.IGNORECASE)),
+            'skills': bool(re.search(r'(?:skills|technical skills|technologies)', resume_text, re.IGNORECASE)),
+            'education': bool(re.search(r'(?:education|academic background)', resume_text, re.IGNORECASE)),
+            'projects': bool(re.search(r'(?:projects|side projects|personal projects)', resume_text, re.IGNORECASE)),
+            'certifications': bool(re.search(r'(?:certifications|certificates|credentials)', resume_text, re.IGNORECASE))
+        }
+        
+        # Suggest missing sections
+        if not sections_present['summary']:
+            suggestions['new_sections'].append({
+                'section': 'Professional Summary',
+                'template': 'Results-driven [Job Title] with X+ years of experience in [Industry]. Proven track record of [Key Achievement 1] and [Key Achievement 2]. Expert in [Key Skill 1], [Key Skill 2], and [Key Skill 3].'
+            })
+        
+        if not sections_present['projects'] and 'project' in jd_text.lower():
+            suggestions['new_sections'].append({
+                'section': 'Key Projects',
+                'template': 'Project Name: [Project Description]\n• Achieved [specific outcome] using [technologies]\n• Resulted in [quantifiable result]'
+            })
+        
+        if not sections_present['skills']:
+            suggestions['new_sections'].append({
+                'section': 'Technical Skills',
+                'template': '• Programming: [list languages]\n• Frameworks: [list frameworks]\n• Tools: [list tools]\n• Databases: [list databases]'
+            })
+        
+        # Suggest section renames for better ATS parsing
+        if re.search(r'work', resume_text, re.IGNORECASE) and not re.search(r'experience', resume_text, re.IGNORECASE):
+            suggestions['section_renames'].append({
+                'current': 'Work',
+                'suggested': 'Professional Experience',
+                'reason': 'ATS systems better recognize "Professional Experience"'
+            })
+        
+        if re.search(r'tech skills', resume_text, re.IGNORECASE) and not re.search(r'skills', resume_text, re.IGNORECASE):
+            suggestions['section_renames'].append({
+                'current': 'Tech Skills',
+                'suggested': 'Technical Skills',
+                'reason': 'More standard section header for ATS'
+            })
+        
+        # Suggest priority shifts based on JD
+        if 'certification' in jd_text.lower() and not sections_present['certifications']:
+            suggestions['priority_shifts'].append({
+                'action': 'Add Certifications section',
+                'priority': 'High',
+                'reason': 'Job description emphasizes certifications'
+            })
+        
+        if 'project' in jd_text.lower() and 'project' in jd_text.lower().count('project') > 2:
+            suggestions['priority_shifts'].append({
+                'action': 'Expand Projects section',
+                'priority': 'High',
+                'reason': 'Multiple project mentions in job description'
+            })
+        
+        return suggestions
+    
+    def _generate_number_suggestions(self, resume_text: str, jd_text: str, skills_result: Dict) -> List[Dict]:
+        """Generate specific number/metric suggestions for each experience bullet"""
+        
+        suggestions = []
+        
+        # Extract existing experience bullets
+        experience_section = re.search(r'(?:experience|work history)[:\s]+\n?(.*?)(?:\n\n(?:education|skills|projects)|\Z)', 
+                                       resume_text, re.IGNORECASE | re.DOTALL)
+        
+        if experience_section:
+            bullets = re.findall(r'[•·●\-]\s*([^\n]+)', experience_section.group(1))
+            
+            for i, bullet in enumerate(bullets[:5]):  # Top 5 bullets
+                suggestion = self._enhance_bullet_with_numbers(bullet, jd_text, skills_result['matching'][:3])
+                if suggestion:
+                    suggestions.append(suggestion)
+        
+        # General number suggestions for common scenarios
+        common_scenarios = [
+            {
+                'scenario': 'team leadership',
+                'template': 'Led team of [number] to achieve [result], improving [metric] by [percentage]%',
+                'examples': ['Led team of 5 engineers', 'Managed team of 8 developers']
+            },
+            {
+                'scenario': 'performance improvement',
+                'template': 'Improved [system/process] performance by [percentage]%, resulting in [time/money] savings',
+                'examples': ['Improved API response time by 40%', 'Optimized database queries reducing load time by 60%']
+            },
+            {
+                'scenario': 'project delivery',
+                'template': 'Delivered [project name] [timeframe] ahead of schedule, resulting in [outcome]',
+                'examples': ['Delivered 3 months early', 'Completed project 2 weeks ahead of deadline']
+            },
+            {
+                'scenario': 'cost reduction',
+                'template': 'Reduced [cost type] by [amount] ([percentage]%) through [action taken]',
+                'examples': ['Reduced AWS costs by $50K (30%)', 'Cut operational expenses by 25%']
+            },
+            {
+                'scenario': 'revenue generation',
+                'template': 'Generated [amount] in [revenue/savings] by implementing [solution]',
+                'examples': ['Generated $1M in new revenue', 'Created $500K annual recurring revenue']
+            },
+            {
+                'scenario': 'user/customer impact',
+                'template': 'Served [number] [users/customers], achieving [metric] satisfaction rate',
+                'examples': ['Served 1M+ daily active users', 'Supported 500 enterprise clients']
+            }
+        ]
+        
+        # Add scenario-based suggestions
+        text_lower = resume_text.lower()
+        for scenario in common_scenarios:
+            if scenario['scenario'] in text_lower:
+                # Check if already has numbers
+                has_numbers = bool(re.search(r'\d+', text_lower))
+                if not has_numbers:
+                    suggestions.append({
+                        'original_context': scenario['scenario'],
+                        'suggestion': scenario['template'],
+                        'examples': scenario['examples'],
+                        'impact': 'High'
+                    })
+        
+        return suggestions
+    
+    def _enhance_bullet_with_numbers(self, bullet: str, jd_text: str, key_skills: List) -> Dict:
+        """Enhance a specific bullet point with number suggestions"""
+        
+        # Check if already has numbers
+        if re.search(r'\d+', bullet):
+            return None
+        
+        # Determine bullet type
+        bullet_lower = bullet.lower()
+        
+        suggestion = {
+            'original': bullet,
+            'suggestions': [],
+            'example': None
+        }
+        
+        # Type 1: Improvement statements
+        improvement_keywords = ['improve', 'enhance', 'optimize', 'increase', 'boost']
+        if any(keyword in bullet_lower for keyword in improvement_keywords):
+            suggestion['suggestions'].append("Add percentage improvement (e.g., 'improved by 25%')")
+            suggestion['suggestions'].append("Add time frame (e.g., 'within 3 months')")
+            suggestion['example'] = bullet + f" by 30%, resulting in $100K annual savings"
+        
+        # Type 2: Development statements
+        dev_keywords = ['develop', 'build', 'create', 'implement', 'launch']
+        if any(keyword in bullet_lower for keyword in dev_keywords):
+            suggestion['suggestions'].append("Add user/customer impact (e.g., 'serving 10,000 users')")
+            suggestion['suggestions'].append("Add time to completion (e.g., 'delivered 2 months early')")
+            suggestion['example'] = bullet + f", serving 50,000+ daily active users"
+        
+        # Type 3: Leadership statements
+        leadership_keywords = ['lead', 'manage', 'direct', 'supervise', 'mentor']
+        if any(keyword in bullet_lower for keyword in leadership_keywords):
+            suggestion['suggestions'].append("Add team size (e.g., 'led team of 8')")
+            suggestion['suggestions'].append("Add project impact (e.g., 'completed $2M project')")
+            suggestion['example'] = bullet + f" of 6 engineers, delivering $1.5M in annual value"
+        
+        # Type 4: Process statements
+        process_keywords = ['automate', 'streamline', 'reduce', 'eliminate', 'cut']
+        if any(keyword in bullet_lower for keyword in process_keywords):
+            suggestion['suggestions'].append("Add time saved (e.g., 'saving 20 hours/week')")
+            suggestion['suggestions'].append("Add cost reduction (e.g., 'reducing costs by 40%')")
+            suggestion['example'] = bullet + f", reducing processing time by 65%"
+        
+        # Add skill-specific suggestions
+        if key_skills and any(skill in bullet_lower for skill in key_skills):
+            suggestion['suggestions'].append(f"Highlight {key_skills[0]} expertise with metric")
+        
+        return suggestion if suggestion['suggestions'] else None
+    
+    def _generate_section_rewrites(self, resume_text: str, jd_text: str) -> Dict:
+        """Generate specific rewrite examples for sections"""
+        
+        rewrites = {
+            'summary': None,
+            'experience': [],
+            'skills': None
+        }
+        
+        # Extract current summary
+        summary_match = re.search(r'(?:summary|profile)[:\s]+\n?(.*?)(?:\n\n|\Z)', 
+                                  resume_text, re.IGNORECASE | re.DOTALL)
+        
+        if summary_match:
+            current_summary = summary_match.group(1).strip()
+            
+            # Extract key terms from JD for better summary
+            jd_terms = re.findall(r'\b[A-Z][a-z]{3,}\b', jd_text)
+            key_terms = list(set([term.lower() for term in jd_terms if len(term) > 4]))[:5]
+            
+            if key_terms:
+                rewrites['summary'] = {
+                    'current': current_summary[:200],
+                    'suggested': f"Results-driven professional with expertise in {', '.join(key_terms[:3])}. {current_summary[:150]}",
+                    'key_additions': key_terms[:3]
+                }
+        
+        # Extract experience bullets to rewrite
+        experience_section = re.search(r'(?:experience|work history)[:\s]+\n?(.*?)(?:\n\n(?:education|skills)|\Z)',
+                                       resume_text, re.IGNORECASE | re.DOTALL)
+        
+        if experience_section:
+            bullets = re.findall(r'[•·●\-]\s*([^\n]+)', experience_section.group(1))
+            
+            for bullet in bullets[:2]:  # Top 2 bullets
+                if len(bullet) > 30 and not re.search(r'\d+', bullet):
+                    # Generate STAR format rewrite
+                    rewrites['experience'].append({
+                        'original': bullet[:100],
+                        'star_format': f"Situation: {bullet}\nTask: [specific responsibility]\nAction: [action taken]\nResult: [quantifiable outcome]",
+                        'improved_version': bullet + f", achieving [specific metric]"
+                    })
+        
+        return rewrites
+    
+    def _analyze_quality(self, resume_text: str) -> Dict:
+        """Comprehensive quality analysis"""
+        
+        analysis = {
+            'action_verbs': [],
+            'style_recommendations': [],
+            'strength_areas': [],
+            'weakness_areas': []
+        }
+        
+        # Check action verbs
+        found_verbs = []
+        for category, verbs in self.action_verbs.items():
+            for verb in verbs:
+                if verb in resume_text.lower():
+                    found_verbs.append(verb)
+        
+        analysis['action_verbs'] = list(set(found_verbs))[:10]
+        
+        if len(found_verbs) < 5:
+            analysis['style_recommendations'].append("Start each bullet point with strong action verbs")
+        
+        # Check for passive voice
+        passive_patterns = [r'\bwas\s+\w+ed\b', r'\bwere\s+\w+ed\b', r'\bbeen\s+\w+ed\b']
+        passive_count = sum(len(re.findall(pattern, resume_text.lower())) for pattern in passive_patterns)
+        
+        if passive_count > 3:
+            analysis['style_recommendations'].append("Replace passive voice with active voice (e.g., 'was responsible for' → 'led')")
+        
+        # Check for vague language
+        vague_words = ['various', 'multiple', 'several', 'numerous', 'countless', 'a lot', 'many']
+        vague_count = sum(resume_text.lower().count(word) for word in vague_words)
+        
+        if vague_count > 2:
+            analysis['style_recommendations'].append("Replace vague quantifiers with specific numbers (e.g., 'many' → '15+')")
         
         # Check length
         word_count = len(resume_text.split())
-        if 400 <= word_count <= 800:
-            score += 0.05
-        elif word_count < 300:
-            score -= 0.1
-            issues.append("Resume is too short")
+        if word_count < 300:
+            analysis['weakness_areas'].append("Resume too short - expand with more details and achievements")
         elif word_count > 1000:
-            score -= 0.05
-            issues.append("Resume is too long")
+            analysis['weakness_areas'].append("Resume too long - focus on most relevant experiences")
+        else:
+            analysis['strength_areas'].append("Good length for ATS scanning")
         
-        return {'score': max(0.5, min(score, 0.95)), 'issues': issues}
+        # Check for whitespace/structure
+        if resume_text.count('\n\n') < 3:
+            analysis['style_recommendations'].append("Add clear section breaks for better readability")
+        
+        return analysis
+    
+    def _calculate_formatting_score(self, resume_text: str) -> Dict:
+        """Calculate formatting score with specific issues"""
+        
+        issues = []
+        score = 0.7  # Base score
+        
+        # Check for section headers
+        sections = ['experience', 'education', 'skills']
+        found_sections = sum(1 for section in sections if re.search(r'\b' + section + r'\b', resume_text.lower()))
+        
+        if found_sections == len(sections):
+            score += 0.1
+        elif found_sections < 2:
+            score -= 0.15
+            issues.append("Add clear section headers (Experience, Education, Skills)")
+        
+        # Check for bullet points
+        bullet_count = len(re.findall(r'^[•·●\-]\s', resume_text, re.MULTILINE))
+        if bullet_count >= 8:
+            score += 0.05
+        elif bullet_count < 3:
+            score -= 0.1
+            issues.append("Use bullet points to highlight achievements")
+        
+        # Check for consistent formatting
+        if re.search(r'\n\s*\n\s*\n', resume_text):
+            issues.append("Remove excessive blank lines")
+        
+        # Check for contact information
+        if not re.search(r'\b[\w\.-]+@[\w\.-]+\.\w+\b', resume_text):
+            issues.append("Add email address")
+            score -= 0.05
+        
+        if not re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', resume_text):
+            issues.append("Add phone number")
+            score -= 0.05
+        
+        return {'score': max(0.4, min(score, 0.95)), 'issues': issues[:5]}
     
     def _calculate_completeness_score(self, resume_data: Dict) -> Dict:
-        """Calculate completeness score"""
-        required_sections = ['personal_info', 'skills', 'experience', 'education']
-        present = sum(1 for section in required_sections if resume_data.get(section))
-        
-        score = present / len(required_sections)
-        
-        # Bonus for additional sections
-        if resume_data.get('projects'):
-            score += 0.1
-        if resume_data.get('certifications'):
-            score += 0.05
+        """Calculate completeness score with specific missing info"""
         
         missing_info = []
-        if not resume_data.get('personal_info', {}).get('email'):
-            missing_info.append("Email")
-        if not resume_data.get('personal_info', {}).get('phone'):
-            missing_info.append("Phone")
+        present_count = 0
+        total_checks = 7
         
-        return {'score': min(score, 0.95), 'missing_info': missing_info}
+        # Check required sections
+        if resume_data.get('personal_info', {}).get('name'):
+            present_count += 1
+        else:
+            missing_info.append("Full name")
+        
+        if resume_data.get('personal_info', {}).get('email'):
+            present_count += 1
+        else:
+            missing_info.append("Email address")
+        
+        if resume_data.get('skills') and any(resume_data['skills'].values()):
+            present_count += 1
+        else:
+            missing_info.append("Skills section")
+        
+        if resume_data.get('experience'):
+            present_count += 1
+        else:
+            missing_info.append("Work experience")
+        
+        if resume_data.get('education'):
+            present_count += 1
+        else:
+            missing_info.append("Education")
+        
+        if resume_data.get('projects'):
+            present_count += 0.5
+        
+        if resume_data.get('certifications'):
+            present_count += 0.5
+        
+        score = present_count / total_checks
+        
+        return {'score': min(score, 0.95), 'missing_info': missing_info[:5]}
+    
+    def _identify_strengths_weaknesses(self, skills: Dict, experience: Dict, 
+                                       impact: Dict, keywords: Dict) -> Tuple[List, List]:
+        """Identify key strengths and weaknesses"""
+        
+        strengths = []
+        weaknesses = []
+        
+        # Skills strengths/weaknesses
+        if skills['score'] >= 0.8:
+            strengths.append(f"✅ Strong skills alignment: {len(skills['matching'])} matching skills")
+            if skills.get('partial_matches'):
+                strengths.append(f"🔄 Close skill matches: {len(skills['partial_matches'])} related skills")
+        elif skills['score'] < 0.5:
+            weaknesses.append(f"⚠️ Missing key skills: {', '.join(skills['missing'][:3])}")
+        
+        # Experience strengths/weaknesses
+        if experience['score'] >= 0.8:
+            if experience.get('relevant_years', 0) > 0:
+                strengths.append(f"💼 Relevant experience: {experience['relevant_years']:.0f} years in target role")
+            else:
+                strengths.append(f"💼 Solid experience: {experience['total_years']:.0f} years total")
+        elif experience['score'] < 0.5:
+            weaknesses.append(f"⚠️ Experience gap: Need {experience['required_years'] - experience['total_years']:.0f} more years")
+        
+        # Impact metrics strengths/weaknesses
+        if impact['score'] >= 0.7:
+            strengths.append(f"📊 Strong metrics: {impact['total_metrics']} quantifiable achievements")
+        elif impact['score'] < 0.4:
+            weaknesses.append("📈 Add more numbers and metrics to showcase impact")
+        
+        # Keyword strengths
+        if keywords['score'] >= 0.7:
+            strengths.append(f"🔑 Good keyword optimization: {len(keywords['matching'])} key terms matched")
+        
+        return strengths[:5], weaknesses[:5]
+    
+    def _generate_improvement_plan(self, skills: Dict, impact: Dict, keywords: Dict,
+                                   restructuring: Dict, number_suggestions: List,
+                                   section_rewrites: Dict, quality: Dict) -> Dict:
+        """Generate actionable improvement plan"""
+        
+        improvements = {
+            'critical': [],
+            'important': [],
+            'nice_to_have': [],
+            'quick_wins': [],
+            'estimated_impact': {}
+        }
+        
+        # Critical improvements (score < 0.5)
+        if skills['score'] < 0.5:
+            improvements['critical'].append({
+                'area': 'Skills Gap',
+                'action': f"Add missing key skills: {', '.join(skills['missing'][:3])}",
+                'effort': 'Medium',
+                'impact': 'High'
+            })
+        
+        if impact['score'] < 0.4:
+            improvements['critical'].append({
+                'area': 'Missing Metrics',
+                'action': 'Add quantifiable achievements with specific numbers and percentages',
+                'effort': 'Medium',
+                'impact': 'Very High'
+            })
+        
+        # Important improvements
+        if keywords['score'] < 0.6:
+            improvements['important'].append({
+                'area': 'Keyword Optimization',
+                'action': f"Include these keywords: {', '.join(keywords['missing'][:5])}",
+                'effort': 'Low',
+                'impact': 'High'
+            })
+        
+        # Quick wins
+        if number_suggestions:
+            improvements['quick_wins'].append({
+                'action': 'Add specific numbers to experience bullet points',
+                'examples': [s.get('example', '') for s in number_suggestions[:2] if s.get('example')]
+            })
+        
+        if quality.get('style_recommendations'):
+            improvements['quick_wins'].append({
+                'action': quality['style_recommendations'][0],
+                'effort': 'Low',
+                'impact': 'Medium'
+            })
+        
+        # Restructuring improvements
+        if restructuring.get('new_sections'):
+            improvements['important'].append({
+                'area': 'Section Structure',
+                'action': f"Add {restructuring['new_sections'][0]['section']} section",
+                'effort': 'Low',
+                'impact': 'High'
+            })
+        
+        # Estimate impact for each category
+        improvements['estimated_impact'] = {
+            'critical': '+15-25%',
+            'important': '+10-15%',
+            'quick_wins': '+5-10%',
+            'total_potential': '+30-50%'
+        }
+        
+        return improvements
     
     def _generate_section_suggestions(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Generate section suggestions"""
-        suggestions = {'skills': [], 'experience': [], 'summary': [], 'education': [], 'projects': []}
+        """Generate section-specific suggestions"""
         
-        # Skills suggestions
-        if jd_data.get('requirements', {}).get('must_have', {}).get('skills'):
-            missing = self._calculate_skills_match(resume_data, jd_data).get('missing', [])[:3]
-            if missing:
-                suggestions['skills'].append(f"Add missing skills: {', '.join(missing)}")
+        suggestions = {
+            'skills': [],
+            'experience': [],
+            'summary': [],
+            'education': [],
+            'projects': []
+        }
+        
+        # Skills section suggestions
+        if resume_data.get('skills'):
+            skills_dict = resume_data['skills']
+            total_skills = sum(len(v) for v in skills_dict.values() if isinstance(v, list))
+            if total_skills < 10:
+                suggestions['skills'].append("Expand skills section with more relevant technical skills")
+            elif total_skills > 30:
+                suggestions['skills'].append("Focus on most relevant skills, remove redundant entries")
+        
+        # Experience section suggestions
+        experiences = resume_data.get('experience', [])
+        if len(experiences) < 2:
+            suggestions['experience'].append("Add more work experience or expand current roles with details")
+        
+        for exp in experiences[:2]:
+            responsibilities = exp.get('responsibilities', [])
+            if responsibilities and len(responsibilities[0]) < 50:
+                suggestions['experience'].append(f"In {exp.get('title', 'Role')}, add more detail and metrics")
+        
+        # Summary section suggestions
+        if not resume_data.get('personal_info', {}).get('summary'):
+            suggestions['summary'].append("Add a professional summary highlighting key strengths")
         
         return suggestions
     
     def _check_spelling_errors(self, text: str) -> List[Dict]:
-        """Check spelling errors"""
-        common_mistakes = {
-            'recieve': 'receive', 'acheive': 'achieve', 'comittment': 'commitment',
-            'maintainance': 'maintenance', 'managment': 'management', 'developement': 'development'
+        """Check for common spelling errors"""
+        common_errors = {
+            'recieve': 'receive',
+            'acheive': 'achieve',
+            'comittment': 'commitment',
+            'maintainance': 'maintenance',
+            'managment': 'management',
+            'developement': 'development',
+            'environement': 'environment',
+            'implemention': 'implementation',
+            'collaboration': 'collaboration',  # Correct spelling
+            'seperate': 'separate',
+            'definately': 'definitely',
+            'occured': 'occurred',
+            'priviledge': 'privilege',
+            'responsability': 'responsibility'
         }
         
         errors = []
-        for word, correction in common_mistakes.items():
-            if word in text.lower():
-                errors.append({'word': word, 'suggestion': correction, 'context': ''})
+        text_lower = text.lower()
         
-        return errors
+        for wrong, correct in common_errors.items():
+            if wrong in text_lower:
+                errors.append({
+                    'word': wrong,
+                    'suggestion': correct,
+                    'context': self._get_context(text, wrong, 5)
+                })
+        
+        return errors[:5]
     
     def _check_grammar_issues(self, text: str) -> List[Dict]:
-        """Check grammar issues"""
+        """Check common grammar issues"""
         issues = []
         
-        if re.search(r'\bwas\s+\w+ed\b', text.lower()):
-            issues.append({'type': 'Passive Voice', 'suggestion': 'Use active voice', 'example': None})
+        # Check for passive voice
+        passive = re.findall(r'\b(?:was|were|is|are|be|been)\s+(\w+ed)\b', text.lower())
+        if len(passive) > 3:
+            issues.append({
+                'type': 'Passive Voice',
+                'suggestion': 'Use active voice for stronger impact',
+                'example': 'Instead of "was responsible for managing", write "managed"'
+            })
         
-        return issues
+        # Check for tense inconsistency
+        past_tense = len(re.findall(r'\b\w+ed\b', text))
+        present_tense = len(re.findall(r'\b(?:manage|lead|develop|create|design)\b', text))
+        
+        if past_tense > 0 and present_tense > 5:
+            issues.append({
+                'type': 'Tense Inconsistency',
+                'suggestion': 'Use past tense for previous roles, present tense for current role',
+                'example': 'Consistently use past tense (-ed) for past experiences'
+            })
+        
+        return issues[:3]
     
-    def _analyze_style_improvements(self, resume_text: str, jd_data: Dict) -> List[str]:
-        """Analyze style improvements"""
-        improvements = []
+    def _calculate_similarity(self, str1: str, str2: str) -> float:
+        """Calculate string similarity ratio"""
+        if not str1 or not str2:
+            return 0
         
-        action_verbs = ['achieved', 'developed', 'implemented', 'designed', 'built', 'created', 'led']
-        found = sum(1 for verb in action_verbs if verb in resume_text.lower())
+        # Simple Jaccard similarity for words
+        words1 = set(str1.split())
+        words2 = set(str2.split())
         
-        if found < 3:
-            improvements.append("Use more action verbs to describe achievements")
+        if not words1 or not words2:
+            return 0
         
-        return improvements
-    
-    def _analyze_formatting_issues(self, resume_text: str) -> List[str]:
-        """Analyze formatting issues"""
-        issues = []
+        intersection = len(words1 & words2)
+        union = len(words1 | words2)
         
-        if not re.search(r'\b[\w\.-]+@[\w\.-]+\.\w+\b', resume_text):
-            issues.append("Missing email address")
-        
-        if not re.search(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', resume_text):
-            issues.append("Missing phone number")
-        
-        return issues
-    
-    def _identify_strengths_weaknesses(self, skills: Dict, experience: Dict, 
-                                       education: Dict, keywords: Dict) -> Tuple[List, List]:
-        """Identify strengths and weaknesses"""
-        strengths = []
-        weaknesses = []
-        
-        if skills['score'] >= 0.8:
-            strengths.append(f"Strong skills match with {len(skills['matching'])} relevant skills")
-        elif skills['score'] < 0.5:
-            weaknesses.append(f"Missing {len(skills['missing'])} key skills")
-        
-        if experience['score'] >= 0.8:
-            strengths.append(f"Experience level meets requirements ({experience['total_years']:.0f} years)")
-        elif experience['score'] < 0.5:
-            weaknesses.append("Experience below requirements")
-        
-        if education['score'] >= 0.9:
-            strengths.append("Educational qualifications meet requirements")
-        
-        return strengths, weaknesses
-    
-    def _generate_improvement_suggestions(self, skills: Dict, experience: Dict,
-                                         education: Dict, keywords: Dict,
-                                         formatting: Dict, completeness: Dict,
-                                         spelling_errors: List, grammar_issues: List) -> Dict:
-        """Generate improvement suggestions"""
-        suggestions = {'skills': [], 'experience': [], 'formatting': [], 'content': []}
-        
-        if skills['missing']:
-            suggestions['skills'].append(f"Add missing skills: {', '.join(skills['missing'][:3])}")
-        
-        if experience['score'] < 0.7:
-            suggestions['experience'].append("Highlight achievements with metrics and numbers")
-        
-        return suggestions
-    
-    def _generate_comprehensive_recommendations(self, improvements: Dict, 
-                                               strengths: List, weaknesses: List) -> List[str]:
-        """Generate recommendations"""
-        recommendations = []
-        
-        if weaknesses:
-            recommendations.append(f"Priority: {weaknesses[0]}")
-        
-        if improvements.get('skills'):
-            recommendations.append(improvements['skills'][0])
-        
-        recommendations.append("Tailor your resume to match job requirements")
-        recommendations.append("Use keywords from the job description")
-        
-        return recommendations[:5]
-    
-    def _generate_detailed_feedback(self, overall_score: float, skills: Dict,
-                                   experience: Dict, education: Dict, keywords: Dict,
-                                   strengths: List, weaknesses: List, 
-                                   recommendations: List) -> str:
-        """Generate detailed feedback"""
-        parts = []
-        
-        if overall_score >= 85:
-            parts.append("Excellent match! Your resume is highly aligned with this position.")
-        elif overall_score >= 70:
-            parts.append("Good match with strong alignment to requirements.")
-        elif overall_score >= 55:
-            parts.append("Moderate match. Some improvements recommended.")
-        else:
-            parts.append("Low match. Consider significant improvements.")
-        
-        parts.append(f"\nOverall Score: {overall_score:.0f}%")
-        parts.append(f"Skills: {skills['score']*100:.0f}%")
-        parts.append(f"Experience: {experience['score']*100:.0f}%")
-        
-        if skills['missing']:
-            parts.append(f"\nMissing Skills: {', '.join(skills['missing'][:3])}")
-        
-        return '\n'.join(parts)
+        return intersection / union if union > 0 else 0
     
     def _get_context(self, text: str, word: str, window: int = 10) -> str:
         """Get context around a word"""
@@ -763,3 +1118,57 @@ class AdvancedATSScorer:
                 end = min(len(words), i + window + 1)
                 return ' '.join(words[start:end])
         return ""
+    
+    def _log_scores(self, scores: Dict):
+        """Log all scores for debugging"""
+        logger.info("-" * 50)
+        for name, score in scores.items():
+            logger.info(f"{name:20} : {score*100:6.1f}%")
+        logger.info("-" * 50)
+    
+    def _generate_detailed_feedback(self, overall_score: float, skills: Dict,
+                                   experience: Dict, impact: Dict,
+                                   strengths: List, weaknesses: List) -> str:
+        """Generate detailed human-readable feedback"""
+        
+        feedback_parts = []
+        
+        # Overall assessment
+        if overall_score >= 85:
+            feedback_parts.append("🎉 EXCELLENT! Your resume is highly competitive for this role.")
+        elif overall_score >= 70:
+            feedback_parts.append("👍 GOOD! Your resume is well-aligned with minor improvements needed.")
+        elif overall_score >= 55:
+            feedback_parts.append("📈 MODERATE! Some significant improvements will boost your chances.")
+        else:
+            feedback_parts.append("⚠️ NEEDS WORK! Major improvements recommended for better ATS performance.")
+        
+        feedback_parts.append(f"\n📊 OVERALL SCORE: {overall_score:.0f}%\n")
+        
+        # Component breakdown
+        feedback_parts.append("📈 COMPONENT BREAKDOWN:")
+        feedback_parts.append(f"   • Skills Match: {skills['score']*100:.0f}% - {'✅ Good' if skills['score']>=0.7 else '⚠️ Needs work'}")
+        feedback_parts.append(f"   • Experience: {experience['score']*100:.0f}% - {'✅ Good' if experience['score']>=0.7 else '⚠️ Needs work'}")
+        feedback_parts.append(f"   • Impact Metrics: {impact['score']*100:.0f}% - {'✅ Strong' if impact['score']>=0.7 else '⚠️ Add numbers'}")
+        
+        # Key recommendations
+        if strengths:
+            feedback_parts.append(f"\n💪 STRENGTHS:")
+            for strength in strengths[:3]:
+                feedback_parts.append(f"   • {strength}")
+        
+        if weaknesses:
+            feedback_parts.append(f"\n⚠️ AREAS TO IMPROVE:")
+            for weakness in weaknesses[:3]:
+                feedback_parts.append(f"   • {weakness}")
+        
+        # Next steps
+        feedback_parts.append(f"\n🎯 TOP 3 NEXT STEPS:")
+        if skills['missing']:
+            feedback_parts.append(f"   1. Add missing skills: {', '.join(skills['missing'][:3])}")
+        if impact['score'] < 0.6:
+            feedback_parts.append(f"   2. Quantify achievements with specific numbers and percentages")
+        if skills['score'] < 0.7:
+            feedback_parts.append(f"   3. Tailor your resume keywords to match job requirements")
+        
+        return '\n'.join(feedback_parts)

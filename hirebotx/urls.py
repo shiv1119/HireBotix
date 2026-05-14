@@ -19,6 +19,7 @@ urlpatterns = [
     path('jobs/', include('jobs.urls')),
     path('applications/', include('applications.urls')),
     path('ats-checker/', include('ats_checker.urls')),
+    path('company/', include('company.urls')),
 ]
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

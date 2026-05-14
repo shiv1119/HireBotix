@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Certification - My Portfolio{% endblock %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Award & Certification - My Portfolio{% endblock %}
 
 {% block page %}certification-form{% endblock %}
 
@@ -19,10 +19,10 @@
 
         <div class="rj text-center">
             <h2 class="ek ck kk wm xb">
-                {% if form.instance.pk %}Edit Certification{% else %}Add New Certification{% endif %}
+                {% if form.instance.pk %}Edit Awards & Certification{% else %}Add New Awards & Certification{% endif %}
             </h2>
             <h3 class="hk yj kk wm ob mc">
-                {% if form.instance.pk %}Update your certification details{% else %}Add a professional certification{% endif %}
+                {% if form.instance.pk %}Update your awards & certification details{% else %}Add a professional awards & certification{% endif %}
             </h3>
         </div>
 
@@ -100,7 +100,7 @@
                 </a>
                 <button type="submit" 
                         class="gh lk rg il _l gi hi px-8 py-3 transition-all duration-300 hover:bg-opacity-90">
-                    {% if form.instance.pk %}Update Certification{% else %}Save Certification{% endif %}
+                    {% if form.instance.pk %}Update Awards & Certification{% else %}Save Awards & Certification{% endif %}
                 </button>
             </div>
         </form>

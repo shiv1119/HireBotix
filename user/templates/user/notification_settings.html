@@ -1,76 +1,242 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+HireBotx - Notification Preferences
+{% endblock %}
+
+{% block page %}notification-preferences{% endblock %}
 
 {% block content %}
-<div class="mt-4">
-    <h4 class="mb-4 text-center fw-bold border-bottom bg-white rounded shadow-sm dark-mode-card py-3 fade-in">
-        <i class="bi bi-bell-fill fs-5"></i> Notification Preferences
-        <span class="d-block text-muted fw-normal fs-6 mt-1 px-2 mt-3">
-            Manage how you receive important updates and alerts. Choose your preferred notification methods below. 
-            You can update your preferences at any time.
-        </span>
-    </h4>
-    <div class="card shadow-sm py-2 px-2 border-0 bg-white dark-mode-card fade-in">
-        <div class="card-body">
-            {% if messages %}
-                <div class="mb-3 fade-in">
-                    {% for message in messages %}
-                        {% if message.tags == "error" %}
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {% else %}
-                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {% endif %}
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k animate-pulse" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m animate-bounce" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o animate-spin" style="animation-duration: 20s;" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q animate-pulse" />
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-4xl mx-auto px-6">
+    <span class="rc h r s zd/2 od zg gh"></span>
+    <span class="rc h r q zd/2 od xg mh"></span>
+
+    <!-- Header Section -->
+    <div class="rj text-center mb-12">
+        <div class="text-center mb-8">
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <i class="bi bi-bell-fill"></i> Notification Preferences
+            </h2>
+            <p class="text-gray-600 mt-1 text-sm">
+                Manage how you receive important updates and alerts. Choose your preferred notification methods below. 
+                You can update your preferences at any time.
+            </p>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6 fade-in">
+        {% for message in messages %}
+            {% if message.tags == "error" %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {% else %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {% endif %}
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Preferences Card -->
+    <div class="relative overflow-hidden bg-white rounded-xl shadow-lg">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-50 to-purple-50 rounded-full -mr-32 -mt-32 opacity-50"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-purple-50 to-pink-50 rounded-full -ml-32 -mb-32 opacity-50"></div>
+        
+        <div class="relative z-10 p-8">
+            
             <form method="post">
                 {% csrf_token %}
                 
-                <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="email_notifications" name="email_notifications" 
-                           {% if form.instance.email_notifications %}checked{% endif %}>
-                    <label class="form-check-label" for="email_notifications">
-                        Receive Email Notifications
-                    </label>
-                    <small class="text-muted d-block">Get important updates via email.</small>
+                <!-- Email Notifications -->
+                <div class="mb-6 p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-envelope-fill text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <label for="email_notifications" class="text-base font-semibold text-gray-900 cursor-pointer">
+                                        Email Notifications
+                                    </label>
+                                    <p class="text-sm text-gray-500 mt-1">Get important updates via email.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <input type="checkbox" 
+                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
+                                   id="email_notifications" 
+                                   name="email_notifications" 
+                                   {% if form.instance.email_notifications %}checked{% endif %}>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="sms_notifications" name="sms_notifications" 
-                           {% if form.instance.sms_notifications %}checked{% endif %}>
-                    <label class="form-check-label" for="sms_notifications">
-                        Receive SMS Notifications
-                    </label>
-                    <small class="text-muted d-block">Receive critical alerts directly on your phone.</small>
+                <!-- SMS Notifications -->
+                <div class="mb-6 p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-chat-dots-fill text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <label for="sms_notifications" class="text-base font-semibold text-gray-900 cursor-pointer">
+                                        SMS Notifications
+                                    </label>
+                                    <p class="text-sm text-gray-500 mt-1">Receive critical alerts directly on your phone.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <input type="checkbox" 
+                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
+                                   id="sms_notifications" 
+                                   name="sms_notifications" 
+                                   {% if form.instance.sms_notifications %}checked{% endif %}>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="push_notifications" name="push_notifications" 
-                           {% if form.instance.push_notifications %}checked{% endif %}>
-                    <label class="form-check-label" for="push_notifications">
-                        Receive Push Notifications
-                    </label>
-                    <small class="text-muted d-block">Stay updated with real-time app notifications.</small>
+                <!-- Push Notifications -->
+                <div class="mb-6 p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-bell-fill text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <label for="push_notifications" class="text-base font-semibold text-gray-900 cursor-pointer">
+                                        Push Notifications
+                                    </label>
+                                    <p class="text-sm text-gray-500 mt-1">Stay updated with real-time app notifications.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <input type="checkbox" 
+                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
+                                   id="push_notifications" 
+                                   name="push_notifications" 
+                                   {% if form.instance.push_notifications %}checked{% endif %}>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-check mb-3">
-                    <input type="checkbox" class="form-check-input" id="in_app_notification" name="in_app_notification" 
-                           {% if form.instance.in_app_notification %}checked{% endif %}>
-                    <label class="form-check-label" for="in_app_notification">
-                        Receive In-App Notifications
-                    </label>
-                    <small class="text-muted d-block">View notifications directly within your account.</small>
+                <!-- In-App Notifications -->
+                <div class="mb-8 p-4 rounded-lg border border-gray-100 hover:border-blue-200 transition-all">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-phone-fill text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <label for="in_app_notification" class="text-base font-semibold text-gray-900 cursor-pointer">
+                                        In-App Notifications
+                                    </label>
+                                    <p class="text-sm text-gray-500 mt-1">View notifications directly within your account.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <input type="checkbox" 
+                                   class="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
+                                   id="in_app_notification" 
+                                   name="in_app_notification" 
+                                   {% if form.instance.in_app_notification %}checked{% endif %}>
+                        </div>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary w-100 btn-loading">
-                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
-                    <span class="button-text">Save Preferences</span>
-                </button>
+                <!-- Buttons -->
+                <div class="flex gap-3">
+                    <button type="submit" class="flex-1 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all font-medium btn-loading">
+                        <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        <span class="button-text">Save Preferences</span>
+                    </button>
+                    
+                    <a href="{% url 'settings' %}" class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all text-center font-medium">
+                        <i class="bi bi-arrow-left"></i> Back to Settings
+                    </a>
+                </div>
                 
             </form>
         </div>
     </div>
 </div>
-{% endblock %}
+
+</section>
+
+<style>
+    /* Animation keyframes */
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .animate-spin-slow {
+        animation: spin-slow 20s linear infinite;
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .animate-fade-in {
+        animation: fade-in 0.5s ease-out;
+    }
+    
+    /* Custom checkbox styling */
+    input[type="checkbox"] {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    input[type="checkbox"]:hover {
+        transform: scale(1.05);
+    }
+    
+    input[type="checkbox"]:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+</style>
+
+<script>
+    // Loading button functionality
+    document.querySelectorAll('.btn-loading').forEach(button => {
+        button.addEventListener('click', function(e) {
+            const spinner = this.querySelector('.spinner-border');
+            const buttonText = this.querySelector('.button-text');
+            
+            if (spinner && buttonText && !this.disabled) {
+                spinner.classList.remove('d-none');
+                buttonText.textContent = 'Saving...';
+                this.disabled = true;
+            }
+        });
+    });
+</script>
+
+{% endblock content %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Job - {{ form.title.value }}{% endblock %}
+
+{% block page %}edit-job{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+  <!-- Bg Border -->
+  <span class="rc h r s zd/2 od zg gh"></span>
+  <span class="rc h r q zd/2 od xg mh"></span>
+
+  <div class="rj text-center">
+    <h3 class="hk yj kk wm ob mc">Update your job listing details</h3>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+              {% if message.tags == 'error' %}bg-red-500 text-white
+              {% elif message.tags == 'success' %}bg-green-500 text-white
+              {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+              {% else %}bg-blue-500 text-white{% endif %}">
+              <span>{{ message }}</span>
+              <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+          </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Re-approval Warning -->
+  {% if not job.is_approved %}
+  <div class="my-6 bg-yellow-500/10 border-l-4 border-yellow-500 rounded-lg p-4 shadow-sm">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3 flex-1">
+        <p class="text-sm text-yellow-600">
+          ⚠️ This job will need to be re-approved by admin after editing.
+        </p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Company Info Panel -->
+  {% if company %}
+  <div class="my-6 {% if company.is_verified %}bg-blue-500/10 border-blue-500{% else %}bg-yellow-500/10 border-yellow-500{% endif %} border-l-4 rounded-lg p-4 shadow-sm">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        {% if company.is_verified %}
+          <svg class="h-5 w-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+        {% else %}
+          <svg class="h-5 w-5 text-yellow-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+        {% endif %}
+      </div>
+      <div class="ml-3 flex-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <strong class="{% if company.is_verified %}text-blue-800{% else %}text-yellow-800{% endif %}">Posting as:</strong>
+          <span class="text-gray-700">{{ company.name }}</span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+            {{ employee.role.get_name_display }}
+          </span>
+        </div>
+        
+        {% if not company.is_verified %}
+        <div class="mt-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-xs text-yellow-700">
+            ⚠️ Your company is pending verification. Jobs will be visible only after company verification.
+          </p>
+        </div>
+        {% else %}
+        <div class="mt-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-xs text-green-700">
+            ✓ Your company is verified. Changes will be visible after admin approval.
+          </p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Edit Job Form -->
+  <form class="sb w-full" method="POST">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+        {% for field in form %}
+        <div class="wb w-full">
+            <label class="rc kk wm vb block mb-2">
+                {{ field.label }}
+                {% if field.field.required %}
+                    <span class="text-red-500 text-xs">*</span>
+                {% endif %}
+            </label>
+            {{ field }}
+            {% if field.help_text %}
+                <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+            {% endif %}
+            {% if field.errors %}
+                <p class="text-red-500 text-sm mt-1">{{ field.errors.0 }}</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    
+<div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+    <a href="{% url 'job_detail' job.id %}" 
+       class="flex-1 vd rj ek rc rg gh lk ml il _l gi hi px-6 py-3 text-lg bg-gray-100 text-gray-500 hover:text-gray-700 hover:bg-gray-200">
+        Cancel
+    </a>
+    <button type="submit" 
+            class="flex-1 vd rj ek rc rg gh lk ml il _l gi hi px-6 py-3 text-lg transition transform">
+        Update Job
+    </button>
+</div>
+  </form>
+
+</div>
+
+</section>
+
+<script src="{% static 'js/bundle.js' %}"></script>
+
+{% endblock content %}

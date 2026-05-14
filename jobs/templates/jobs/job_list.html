@@ -142,15 +142,15 @@ HireBotx - Jobs
     </a>
   </h3>
 
-  <p class="flex items-center gap-2 text-sm opacity-80 mb-3">
+  <a href="{% url 'company_preview' job.company.id %}" class="flex items-center gap-2 text-sm text-blue-700 opacity-80 mb-3">
     
     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         d="M3 21h18M5 21V7a2 2 0 012-2h3V3h4v2h3a2 2 0 012 2v14"/>
     </svg>
 
-    {{ job.company_name }}
-  </p>
+                                    {{ job.company.name }}
+    </a>
 
   <p class="flex items-center gap-2 text-sm opacity-70 mb-3">
     

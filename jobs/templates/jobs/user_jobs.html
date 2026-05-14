@@ -21,9 +21,6 @@ HireBotx - Jobs by {{ profile_user.get_full_name|default:profile_user.username }
   <span class="rc h r q zd/2 od xg mh"></span>
 
   <div class="rj text-center">
-    <h2 class="ek ck kk wm xb">
-      Jobs Posted by {{ profile_user.get_full_name|default:profile_user.username }}
-    </h2>
     <h3 class="hk yj kk wm ob mc">
       {% if is_owner %}Your posted jobs{% else %}View all jobs posted by this recruiter{% endif %}
     </h3>
@@ -79,7 +76,7 @@ HireBotx - Jobs by {{ profile_user.get_full_name|default:profile_user.username }
 
   {% if is_owner %}
     <!-- Owner View: Edit and View Applications buttons -->
-    <a href="#" 
+    <a href="{% url 'edit_job' job.id %}" 
        class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm
               bg-yellow-500/10 text-yellow-400 border border-yellow-400/20
               hover:bg-yellow-500/20 hover:text-yellow-300 transition">
@@ -89,7 +86,7 @@ HireBotx - Jobs by {{ profile_user.get_full_name|default:profile_user.username }
       <span>Edit Job</span>
     </a>
     
-    <a href="{% url 'recruiter_applications' job.id %}" 
+<a href="{% url 'recruiter-applications' job.id %}"
        class="inline-flex items-center justify-center gap-2 vd rj ek rc rg gh lk ml il _l gi hi px-5 py-2 text-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Invite Team Member - {{ company.name }}{% endblock %}
+
+{% block page %}invite-team-member{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+    <img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+    <img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+    <img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+    <img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+    <div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+        <span class="rc h r s zd/2 od zg gh"></span>
+        <span class="rc h r q zd/2 od xg mh"></span>
+
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h2 class="text-3xl md:text-4xl font-bold tracking-tight">
+                Invite Team Member
+            </h2>
+            <p class="mt-3 text-sm opacity-70">
+                Add a new member to your company team
+            </p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg overflow-hidden">
+            
+            <!-- Company Info Bar -->
+            <div class="border-b border-white/10 bg-white/5 px-6 py-4">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        {% if company.logo %}
+                            <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="h-10 w-10 rounded-lg object-cover">
+                        {% else %}
+                            <div class="h-10 w-10 rounded-lg bg-white/10 flex items-center justify-center">
+                                <svg class="h-5 w-5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <p class="text-sm font-medium">{{ company.name }}</p>
+                            <p class="text-xs opacity-60">Your Role: {{ employee.role.get_name_display }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Back Button -->
+                    <a href="{% url 'company_dashboard_default' %}" 
+                       class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/10 transition text-sm">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="post" class="p-6">
+                {% csrf_token %}
+                
+                <!-- Email Field -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">
+                        Email Address <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.invited_email }}
+                    {% if form.invited_email.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ form.invited_email.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-xs opacity-50 mt-1">The user must have an existing account on our platform</p>
+                </div>
+                
+                <!-- Role Field -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium mb-2">
+                        Role <span class="text-red-400">*</span>
+                    </label>
+                    {{ form.role }}
+                    {% if form.role.errors %}
+                        <p class="text-red-400 text-xs mt-1">{{ form.role.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <!-- Permissions Preview -->
+                <div class="mb-8 rounded-xl border border-white/10 bg-white/5 p-5">
+                    <h3 class="font-medium mb-3 flex items-center gap-2">
+                        <svg class="h-4 w-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        Role Permissions
+                    </h3>
+                    <div id="role-permissions" class="text-sm opacity-70">
+                        <p>Select a role to see permissions</p>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+                    <a href="{% url 'company_dashboard_default' %}" 
+                       class="px-5 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition">
+                        Cancel
+                    </a>
+                    <button type="submit" 
+                            class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition shadow-lg hover:shadow-xl">
+                        Send Invitation
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Info Note -->
+        <div class="mt-6 text-center text-xs opacity-50">
+            <p>Invited users will receive an email with instructions to join your company.</p>
+        </div>
+    </div>
+</section>
+
+<script>
+// Role permissions mapping from Django backend
+const rolePermissions = {
+    {% for role in available_roles %}
+    "{{ role.id }}": {
+        can_post_jobs: {{ role.can_post_jobs|yesno:"true,false" }},
+        can_edit_jobs: {{ role.can_edit_jobs|yesno:"true,false" }},
+        can_view_applications: {{ role.can_view_applications|yesno:"true,false" }},
+        can_manage_team: {{ role.can_manage_team|yesno:"true,false" }}
+    },
+    {% endfor %}
+};
+
+function updatePermissions() {
+    const roleSelect = document.getElementById('id_role');
+    const selectedRole = roleSelect.value;
+    const permissions = rolePermissions[selectedRole];
+    const container = document.getElementById('role-permissions');
+    
+    if (permissions && selectedRole) {
+        const canPostJobs = permissions.can_post_jobs;
+        const canEditJobs = permissions.can_edit_jobs;
+        const canViewApplications = permissions.can_view_applications;
+        const canManageTeam = permissions.can_manage_team;
+        
+        let permissionsHtml = '<div class="space-y-2">';
+        
+        if (canPostJobs) {
+            permissionsHtml += '<div class="flex items-center gap-2 text-green-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' +
+                '</svg><span>Can post new jobs</span></div>';
+        } else {
+            permissionsHtml += '<div class="flex items-center gap-2 text-red-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                '</svg><span>Cannot post jobs</span></div>';
+        }
+        
+        if (canEditJobs) {
+            permissionsHtml += '<div class="flex items-center gap-2 text-green-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' +
+                '</svg><span>Can edit jobs</span></div>';
+        } else {
+            permissionsHtml += '<div class="flex items-center gap-2 text-red-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                '</svg><span>Cannot edit jobs</span></div>';
+        }
+        
+        if (canViewApplications) {
+            permissionsHtml += '<div class="flex items-center gap-2 text-green-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' +
+                '</svg><span>Can view applications</span></div>';
+        } else {
+            permissionsHtml += '<div class="flex items-center gap-2 text-red-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                '</svg><span>Cannot view applications</span></div>';
+        }
+        
+        if (canManageTeam) {
+            permissionsHtml += '<div class="flex items-center gap-2 text-green-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>' +
+                '</svg><span>Can manage team members</span></div>';
+        } else {
+            permissionsHtml += '<div class="flex items-center gap-2 text-red-400">' +
+                '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+                '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>' +
+                '</svg><span>Cannot manage team members</span></div>';
+        }
+        
+        permissionsHtml += '</div>';
+        container.innerHTML = permissionsHtml;
+    } else {
+        container.innerHTML = '<p class="opacity-60">Select a role to see permissions</p>';
+    }
+}
+
+// Initialize on page load and when selection changes
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.getElementById('id_role');
+    if (roleSelect) {
+        roleSelect.addEventListener('change', updatePermissions);
+        // Trigger initial update if a role is pre-selected
+        if (roleSelect.value) {
+            updatePermissions();
+        }
+    }
+});
+</script>
+
+{% endblock %}

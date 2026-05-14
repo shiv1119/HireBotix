@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Register Company - HireBotx{% endblock %}
+
+{% block page %}register-company{% endblock %}
+
+{% block content %}
+
+<section class="i pg fh rm ki xn vq gj qp gr hj rp hr">
+
+<!-- Background Shapes -->
+<img src="{% static 'img/shape-06.svg' %}" alt="Shape" class="h j k" />
+<img src="{% static 'img/shape-03.svg' %}" alt="Shape" class="h l m" />
+<img src="{% static 'img/shape-17.svg' %}" alt="Shape" class="h n o" />
+<img src="{% static 'img/shape-18.svg' %}" alt="Shape" class="h p q" />
+
+<!-- Main Container -->
+<div class="animate_top bb af i va sg hh sm vk xm yi _n jp hi ao kp w-full max-w-7xl mx-auto px-6">
+
+  <!-- Bg Border -->
+  <span class="rc h r s zd/2 od zg gh"></span>
+  <span class="rc h r q zd/2 od xg mh"></span>
+
+  <div class="rj text-center">
+    <h2 class="ek ck kk wm xb">Register Your Company</h2>
+    <h3 class="hk yj kk wm ob mc">Fill in the details to register your company</h3>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+  <div class="mt-6 mb-6 space-y-3">
+      {% for message in messages %}
+          <div class="flex items-center justify-between px-4 py-3 rounded-lg shadow 
+              {% if message.tags == 'error' %}bg-red-500 text-white
+              {% elif message.tags == 'success' %}bg-green-500 text-white
+              {% elif message.tags == 'warning' %}bg-yellow-400 text-black
+              {% else %}bg-blue-500 text-white{% endif %}">
+              <span>{{ message }}</span>
+              <button onclick="this.parentElement.remove()" class="ml-4 text-xl font-bold">&times;</button>
+          </div>
+      {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Info Panel -->
+  <div class="mb-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4 shadow-sm">
+    <div class="flex items-start">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <div class="ml-3 flex-1">
+        <p class="text-sm text-yellow-800">
+          <strong>Note:</strong> Your company will need to be verified by our team before you can post jobs. 
+          Please provide accurate information and required documents.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <form class="sb w-full" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Basic Information -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Basic Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Company Name <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.name.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Registration Number <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.registration_number }}
+          {% if form.registration_number.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.registration_number.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Tax ID (GST)
+          </label>
+          {{ form.tax_id }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact Information -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Contact Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Email <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.email.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Confirm Email <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.confirm_email }}
+          {% if form.confirm_email.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.confirm_email.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Phone <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.phone }}
+          {% if form.phone.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.phone.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Website
+          </label>
+          {{ form.website }}
+          {% if form.website.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.website.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Address -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Address</h3>
+      <div class="grid grid-cols-1 gap-6 mt-4">
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Address Line 1 <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.address_line1 }}
+          {% if form.address_line1.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.address_line1.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Address Line 2
+          </label>
+          {{ form.address_line2 }}
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div>
+            <label class="rc kk wm vb block mb-2">
+              City <span class="text-red-500 text-xs">*</span>
+            </label>
+            {{ form.city }}
+            {% if form.city.errors %}
+              <p class="text-red-500 text-xs mt-1">{{ form.city.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="rc kk wm vb block mb-2">
+              State <span class="text-red-500 text-xs">*</span>
+            </label>
+            {{ form.state }}
+            {% if form.state.errors %}
+              <p class="text-red-500 text-xs mt-1">{{ form.state.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="rc kk wm vb block mb-2">
+              Country <span class="text-red-500 text-xs">*</span>
+            </label>
+            {{ form.country }}
+            {% if form.country.errors %}
+              <p class="text-red-500 text-xs mt-1">{{ form.country.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <div>
+            <label class="rc kk wm vb block mb-2">
+              Postal Code <span class="text-red-500 text-xs">*</span>
+            </label>
+            {{ form.postal_code }}
+            {% if form.postal_code.errors %}
+              <p class="text-red-500 text-xs mt-1">{{ form.postal_code.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Documents</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mt-4">
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Registration Document <span class="text-red-500 text-xs">*</span>
+          </label>
+          {{ form.registration_document }}
+          <p class="text-gray-500 text-xs mt-1">Upload company registration certificate (PDF, max 5MB)</p>
+          {% if form.registration_document.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.registration_document.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Tax Document
+          </label>
+          {{ form.tax_document }}
+          <p class="text-gray-500 text-xs mt-1">Upload GST/Tax certificate (PDF, max 5MB)</p>
+          {% if form.tax_document.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.tax_document.errors.0 }}</p>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            Company Logo
+          </label>
+          {{ form.logo }}
+          <p class="text-gray-500 text-xs mt-1">Upload company logo (PNG, JPG, max 2MB)</p>
+          {% if form.logo.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.logo.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-8">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">Company Description</h3>
+      <div class="grid grid-cols-1 gap-6 mt-4">
+        <div>
+          <label class="rc kk wm vb block mb-2">
+            About Company
+          </label>
+          {{ form.description }}
+          <p class="text-gray-500 text-xs mt-1">Describe your company, culture, values, mission, etc.</p>
+          {% if form.description.errors %}
+            <p class="text-red-500 text-xs mt-1">{{ form.description.errors.0 }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="mt-10 text-center">
+      <button type="submit" class="vd rj ek rc rg gh lk ml il _l gi hi px-10 py-3 text-lg transition transform hover:scale-105">
+        Register Company
+      </button>
+    </div>
+
+  </form>
+
+</div>
+
+</section>
+
+<script src="{% static 'js/bundle.js' %}"></script>
+
+{% endblock content %}

@@ -5,4 +5,5 @@ from . import views
 urlpatterns = [
     path('', views.ATSDashboardView.as_view(), name='dashboard'),
     path('score/<int:pk>/', views.ScoreDetailView.as_view(), name='score_detail'),
+    path('results/', views.ATSResultsView.as_view(), name='ats_results'),
 ]

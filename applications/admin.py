@@ -1,7 +1,7 @@
 # applications/admin.py
 from django.contrib import admin
 from .models import (
-    Resume, Education, Experience, Skill, AwardAchievement,
+    Resume, Education, Experience, Skill,
     ProfessionalSummary, Link, Certification, Project, JobApplication
 )
 
@@ -27,12 +27,6 @@ class ExperienceAdmin(admin.ModelAdmin):
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('user', 'name')
     search_fields = ('user__username', 'name')
-
-@admin.register(AwardAchievement)
-class AwardAchievementAdmin(admin.ModelAdmin):
-    list_display = ('user', 'title', 'date')
-    search_fields = ('user__username', 'title')
-    list_filter = ('date',)
 
 @admin.register(ProfessionalSummary)
 class ProfessionalSummaryAdmin(admin.ModelAdmin):
@@ -62,3 +56,12 @@ class JobApplicationAdmin(admin.ModelAdmin):
     list_display = ('user', 'job', 'status', 'created_at')
     search_fields = ('user__username', 'job__title', 'status')
     list_filter = ('status', 'created_at')
+
+# utils/admin.py
+from django.contrib import admin
+from django.utils.html import format_html
+from django.urls import reverse
+from .models import GitHubStats, GitHubContribution
+
+admin.site.register(GitHubContribution)
+admin.site.register(GitHubStats)

@@ -1,6 +1,6 @@
 from django import forms
 from .models import (
-    Resume, Education, Experience, Skill, AwardAchievement,
+    Resume, Education, Experience, Skill,
     ProfessionalSummary, Link, Certification, Project, JobApplication
 )
 
@@ -14,6 +14,36 @@ class ResumeForm(forms.ModelForm):
                 'accept': '.pdf,.doc,.docx'
             })
         }
+
+class ResumeUploadForm(forms.ModelForm):
+    """Form for uploading resumes with title and file"""
+    class Meta:
+        model = Resume
+        fields = ['title', 'file']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md',
+                'placeholder': 'e.g., Software Engineer Resume 2024'
+            }),
+            'file': forms.FileInput(attrs={
+                'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md',
+                'accept': '.pdf,.doc,.docx'
+            })
+        }
+    
+    def clean_file(self):
+        file = self.cleaned_data.get('file')
+        if file:
+            # Validate file size (max 5MB)
+            if file.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("File size must be less than 5MB.")
+            
+            # Validate file extension
+            allowed_extensions = ['.pdf', '.doc', '.docx']
+            if not any(file.name.lower().endswith(ext) for ext in allowed_extensions):
+                raise forms.ValidationError("Only PDF, DOC, and DOCX files are allowed.")
+        
+        return file
 
 class EducationForm(forms.ModelForm):
     class Meta:
@@ -83,26 +113,6 @@ class SkillForm(forms.ModelForm):
             'name': forms.TextInput(attrs={
                 'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md',
                 'placeholder': 'e.g., Python, Django, React'
-            })
-        }
-
-class AwardAchievementForm(forms.ModelForm):
-    class Meta:
-        model = AwardAchievement
-        fields = ['title', 'description', 'date']
-        widgets = {
-            'title': forms.TextInput(attrs={
-                'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md',
-                'placeholder': 'e.g., Employee of the Month'
-            }),
-            'description': forms.Textarea(attrs={
-                'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md h-28 resize-none',
-                'rows': 3,
-                'placeholder': 'Describe the award or achievement'
-            }),
-            'date': forms.DateInput(attrs={
-                'class': 'vd hh rg zk _g ch hm dm fm pl/50 xi mi sm xm pm dn/40 rounded-md',
-                'type': 'date'
             })
         }
 

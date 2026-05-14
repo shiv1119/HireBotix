@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Approvals - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Job Approvals</h1>
+        <p class="text-gray-600">Review and manage job postings pending approval</p>
+        <div class="mt-2">
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                {{ pending_count }} Jobs Pending Approval
+            </span>
+        </div>
+    </div>
+    
+    <!-- Jobs Pending Approval -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        {% if jobs %}
+        <div class="divide-y divide-gray-200">
+            {% for job in jobs %}
+            <div class="p-6 hover:bg-gray-50 transition">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3 mb-2">
+                            <h3 class="text-lg font-semibold text-gray-800">
+                                <a href="{% url 'jobs:job_detail' job.id %}" class="hover:text-blue-600">
+                                    {{ job.title }}
+                                </a>
+                            </h3>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                Pending
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 text-sm">
+                            <div>
+                                <span class="text-gray-500">Company:</span>
+                                <span class="font-medium">
+                                    <a href="{% url 'company_preview' job.company.id %}">
+                                    {{ job.company.name }}</a></span>
+                                <div class="text-xs text-gray-400">
+                                    Registration: {{ job.company.registration_number }}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Posted By:</span>
+                                <span class="font-medium">{{ job.posted_by.user.get_full_name|default:job.posted_by.user.username }}</span>
+                                <div class="text-xs text-gray-400">
+                                    Role: {{ job.posted_by.role.get_name_display }}
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Posted On:</span>
+                                <span class="font-medium">{{ job.created_at|date:"F j, Y" }}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Location:</span>
+                                <span class="font-medium">{{ job.location }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-sm text-gray-600 mb-3">
+                            <span class="font-medium">Skills:</span> {{ job.skills_required }}
+                        </div>
+                        
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Description Preview:</span>
+                            <p class="mt-1">{{ job.description|truncatewords:30 }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="ml-4 flex flex-col space-y-2">
+                        <button onclick="openApproveModal({{ job.id }}, '{{ job.title|escapejs }}')" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition text-sm">
+                            Approve
+                        </button>
+                        <button onclick="openRejectModal({{ job.id }}, '{{ job.title|escapejs }}')" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition text-sm">
+                            Reject
+                        </button>
+                        <a href="{% url 'jobs:job_detail' job.id %}" 
+                           class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition text-sm text-center">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="px-6 py-4 border-t border-gray-200">
+            <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-700">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </div>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" 
+                           class="px-3 py-1 border rounded-md hover:bg-gray-50">Previous</a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" 
+                           class="px-3 py-1 border rounded-md hover:bg-gray-50">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">All caught up!</h3>
+            <p class="mt-1 text-sm text-gray-500">No jobs pending approval at this time.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
+                <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-4">Approve Job</h3>
+            <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                    Are you sure you want to approve <span id="approveJobTitle" class="font-semibold"></span>?
+                    This job will immediately become live on the website.
+                </p>
+            </div>
+            <div class="flex justify-center space-x-3 mt-4">
+                <form id="approveForm" method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        Approve
+                    </button>
+                </form>
+                <button onclick="closeModal('approveModal')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div id="rejectModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg leading-6 font-medium text-gray-900 text-center mt-4">Reject Job</h3>
+            <div class="mt-4">
+                <p class="text-sm text-gray-500 mb-3">
+                    Reject <span id="rejectJobTitle" class="font-semibold"></span>? Please provide a reason:
+                </p>
+                <form id="rejectForm" method="post" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <textarea name="rejection_reason" rows="3" 
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                              placeholder="Enter reason for rejection..."></textarea>
+                    <div class="flex justify-center space-x-3 mt-4">
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Reject
+                        </button>
+                        <button type="button" onclick="closeModal('rejectModal')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openApproveModal(jobId, jobTitle) {
+    document.getElementById('approveJobTitle').textContent = jobTitle;
+    document.getElementById('approveForm').action = `/jobs/admin/${jobId}/approve/`;
+    document.getElementById('approveModal').classList.remove('hidden');
+}
+
+function openRejectModal(jobId, jobTitle) {
+    document.getElementById('rejectJobTitle').textContent = jobTitle;
+    document.getElementById('rejectForm').action = `/jobs/admin/${jobId}/approve/`;
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const approveModal = document.getElementById('approveModal');
+    const rejectModal = document.getElementById('rejectModal');
+    if (event.target === approveModal) {
+        approveModal.classList.add('hidden');
+    }
+    if (event.target === rejectModal) {
+        rejectModal.classList.add('hidden');
+    }
+}
+</script>
+{% endblock %}

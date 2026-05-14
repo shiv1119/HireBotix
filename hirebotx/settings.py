@@ -40,7 +40,8 @@ INSTALLED_APPS = [
     'user',
     'jobs',
     'applications',
-    'ats_checker'
+    'ats_checker',
+    'company.apps.CompanyConfig',
 ]
 
 

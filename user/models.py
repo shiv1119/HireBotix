@@ -21,6 +21,11 @@ class UserProfile(models.Model):
     is_active = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    user_type = models.CharField(max_length=20, choices=[
+        ('job_seeker', 'Job Seeker'),
+        ('company_employee', 'Company Employee'),
+        ('company_admin', 'Company Admin'),
+    ], default='job_seeker')
 
     def __str__(self):
         return self.full_name
@@ -75,32 +80,12 @@ class Notification(models.Model):
         ("user_update", "User Update"),
         ("system", "System Notification"),
         ("contact", "Contact"),
-        ("payment_success", "Payment Successful"),
-        ("payment_failed", "Payment Failed"),
-        ("service_created", "Service Created"),
-        ("service_updated", "Service Updated"),
-        ("service_deleted", "Service Deleted"),
-        ("working_hours_updated", "Working Hours Updated"),
         ("address_added", "Address Added"),
         ("address_updated", "Address Updated"),
-        ("social_link_added", "Social Link Added"),
-        ("social_link_updated", "Social Link Updated"),
-        ("review_received", "New Review Received"),
-        ("review_replied", "Review Replied"),
-        ("rating_updated", "Rating Updated"),
-        ("verification_pending", "Verification Pending"),
-        ("verification_completed", "Verification Completed"),
-        ("booking_created", "New Booking Created"),
-        ("booking_confirmed", "Booking Confirmed"),
-        ("booking_completed", "Booking Completed"),
-        ("booking_canceled", "Booking Canceled"),
-        ("booking_rescheduled", "Booking Rescheduled"),
-        ("booking_payment_pending", "Booking Payment Pending"),
-        ("booking_payment_success", "Booking Payment Successful"),
-        ("booking_payment_failed", "Booking Payment Failed"),
-        ("booking_refunded", "Booking Refunded"),
-        ("booking_reminder", "Booking Reminder"),
-        ("booking_updated", "Booking Updated"),
+        ("invitation_sent", "Invitation Sent"),
+        ("invitation_accepted", "Invitation Accepted"),
+        ("job_application", "Job Application"),
+ 
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)
