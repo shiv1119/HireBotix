@@ -58,7 +58,7 @@ Before starting :checkered_flag:, you need to have [Git](https://git-scm.com) an
 
 ## :checkered_flag: Starting ##
 
-## Setup using Docker (Easy and Recommended but make sure docker installed)
+## Setup Django
 
 ```bash
 # Clone this project
@@ -84,6 +84,28 @@ $ python manage.py migrate
 $ python manage.py runserver
 # The server will initialize in the <http://127.0.0.1:8000/>
 ```
+
+## Setup Ollama
+
+```bash
+# Downbload Ollama (Paste in powershell)
+$ irm https://ollama.com/install.ps1 | iex
+
+# Verify
+$ ollama --version
+
+# Pull gemma3:latest
+$ ollama pull gemma3:latest
+
+# Run in terminal
+$ ollama run gemma3:latest
+
+# Verify Ollama serving
+$ ollama ps       - You will see gemma3:latest
+
+# Now you are done with ollama setup, run the django server and play with the websites.
+```
+
 Made with :heart: by <a href="https://github.com/shiv1119" target="_blank">Shiv Nandan Verma</a>
 
 &#xa0;
